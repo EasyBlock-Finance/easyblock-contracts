@@ -383,7 +383,7 @@ contract EasyBlock {
 
     // Shareholder Info
     address[] public holders;
-    uint holderCount;
+    uint public holderCount;
     mapping(address => uint) public shareCount;
     mapping(address => uint) public claimableReward;
 
@@ -391,13 +391,13 @@ contract EasyBlock {
     // Manager Info
     address public manager;
     uint public fee = 0; // per 1000
-    uint accumulatedFees = 0;
+    uint public accumulatedFees = 0;
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
     // Purchase Tokens
     address[] public purchaseTokens;
-    uint purchaseTokensCount;
+    uint public purchaseTokensCount;
     mapping(address => uint) public purchaseTokensPrice; // In USD
     mapping(address => uint) public newInvestments;
     // StrongBlock Node Holders
