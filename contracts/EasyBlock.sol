@@ -494,18 +494,20 @@ contract EasyBlock {
     }
 
     function depositRewards(uint _amount) external {
+        // Execute Deposit
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
-
+        // Stats
         uint tenToThePowerDecimals = 10 ** IERC20(rewardToken ).decimals();
         totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div(tenToThePowerDecimals));
-
+        // Fees
         uint _feeAmount = fee.mul(_amount).div( 1000);
         accumulatedFees = accumulatedFees.add(_feeAmount);
         _amount = _amount.sub(_feeAmount);
-
+        // Reward per share
+        uint _rewardPerShare = _amount.div(totalShareCount);
         for(uint _i = 0; _i < holders.length; _i++) {
             address _currentHolder = holders[_i];
-            uint _userReward = _amount.mul( shareCount[_currentHolder]).div( totalShareCount);
+            uint _userReward = _rewardPerShare.mul(shareCount[_currentHolder]);
             claimableReward[_currentHolder] = claimableReward[_currentHolder].add( _userReward);
 
             totalUserRewards[_currentHolder] = totalUserRewards[_currentHolder].add( _userReward);
