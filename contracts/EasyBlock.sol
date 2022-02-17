@@ -399,7 +399,7 @@ contract EasyBlock {
     // Purchase Tokens
     address[] public purchaseTokens;
     uint public purchaseTokensCount;
-    mapping(address => uint) public purchaseTokensPrice; // In USD
+    mapping(address => uint) public purchaseTokensPrice; // In decimals
     mapping(address => uint) public newInvestments;
     // StrongBlock Node Holders
     address[] public nodeHolders;
@@ -550,9 +550,9 @@ contract EasyBlock {
         uint _tokenDecimals = IERC20(_token ).decimals();
         uint _tenToThePowerDecimals = 10 ** _tokenDecimals;
         uint _price = purchaseTokensPrice[_token];
-        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tenToThePowerDecimals).mul( _shareCount ));
+        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _shareCount ));
 
-        totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price));
+        totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price).div(_tenToThePowerDecimals));
 
         if(!isShareHolder[msg.sender]) {
             holders.push(msg.sender);
@@ -562,7 +562,7 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
         totalShareCount = totalShareCount.add( _shareCount);
-        newInvestments[_token] =newInvestments[_token].add(_price.mul( _tenToThePowerDecimals).mul( _shareCount ));
+        newInvestments[_token] =newInvestments[_token].add(_price.mul( _shareCount ));
 
         emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
     }
