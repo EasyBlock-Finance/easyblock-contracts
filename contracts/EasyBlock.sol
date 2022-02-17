@@ -505,6 +505,8 @@ contract EasyBlock {
     uint256 public purchaseTokensCount;
     mapping(address => uint256) public purchaseTokensPrice; // In decimals
     mapping(address => uint256) public newInvestments;
+    mapping(address => uint256) public purchaseTokenPremium;
+    mapping(address => uint256) public premiumCollected;
     // StrongBlock Node Holders
     address[] public nodeHolders;
     uint256 public nodeHoldersCount;
@@ -559,6 +561,10 @@ contract EasyBlock {
         purchaseTokensCount += 1;
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
         newInvestments[_tokenAddress] = 0;
+
+        // Premium
+        purchaseTokenPremium[_tokenAddress] = 0;
+        premiumCollected[_tokenAddress] = 0;
     }
 
     function editPurchaseToken(address _tokenAddress, uint256 _tokenPrice)
@@ -571,6 +577,15 @@ contract EasyBlock {
         );
 
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
+    }
+
+    function editTokenPremium(address _tokenAddress, uint256 _tokenPremium) external onlyOwner {
+        require(
+            listContains(purchaseTokens, _tokenAddress),
+            "Token is not a purchase asset."
+        );
+
+        purchaseTokenPremium[_tokenAddress] = _tokenPremium;
     }
 
     // Deposit to Share Rewards Methods
@@ -610,6 +625,13 @@ contract EasyBlock {
         require(newInvestments[_token] >= _amount, "Not enough investment.");
         IERC20(_token).safeTransfer(manager, _amount);
         newInvestments[_token] = newInvestments[_token].sub(_amount);
+    }
+
+    function withdrawPremiumToManager(address _token, uint256 _amount) external onlyOwner {
+        require(listContains(purchaseTokens, _token), "Not a purchase token.");
+        require(premiumCollected[_token] >= _amount, "Not enough premium");
+        IERC20(_token).safeTransfer(manager, _amount);
+        premiumCollected[_token] = premiumCollected[_token].sub(_amount);
     }
 
     function depositRewards(uint256 _amount) external {
@@ -688,10 +710,11 @@ contract EasyBlock {
         uint256 _tokenDecimals = IERC20(_token).decimals();
         uint256 _tenToThePowerDecimals = 10**_tokenDecimals;
         uint256 _price = purchaseTokensPrice[_token];
+        uint256 _premium = purchaseTokenPremium[_token];
         IERC20(_token).safeTransferFrom(
             msg.sender,
             address(this),
-            _price.mul(_shareCount)
+            (_price.add(_premium)).mul(_shareCount)
         );
 
         totalInvestmentsInUSD = totalInvestmentsInUSD.add(
@@ -708,6 +731,9 @@ contract EasyBlock {
         totalShareCount = totalShareCount.add(_shareCount);
         newInvestments[_token] = newInvestments[_token].add(
             _price.mul(_shareCount)
+        );
+        premiumCollected[_token] = premiumCollected[_token].add(
+            _premium.mul(_shareCount)
         );
 
         emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
