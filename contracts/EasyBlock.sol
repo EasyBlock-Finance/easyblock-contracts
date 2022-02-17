@@ -541,8 +541,8 @@ contract EasyBlock {
     }
 
     // Controller toggles
-    function toggleSharePurchaseEnabled() external onlyOwner {
-        sharePurchaseEnabled = !sharePurchaseEnabled;
+    function toggleSharePurchaseEnabled(bool _enabled) external onlyOwner {
+        sharePurchaseEnabled = _enabled;
     }
 
     // Deposit to Purchase Methods
