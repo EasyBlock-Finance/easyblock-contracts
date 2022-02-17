@@ -386,6 +386,7 @@ contract EasyBlock {
     uint public holderCount;
     mapping(address => uint) public shareCount;
     mapping(address => uint) public claimableReward;
+    mapping(address => bool) public isShareHolder;
 
     uint public totalShareCount = 0;
     // Manager Info
@@ -517,8 +518,9 @@ contract EasyBlock {
     function transferSharesFromManager(address _targetAddress, uint _shareAmount) external{
         require(msg.sender == manager, "Not Authorized!");
         require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
-        if(!listContains(holders, _targetAddress)) {
+        if(!isShareHolder[_targetAddress]) {
             holders.push(_targetAddress);
+            isShareHolder[_targetAddress] = true;
             holderCount += 1;
         }
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
@@ -533,7 +535,7 @@ contract EasyBlock {
 
     // Shareholder Methods
     function claimRewards() external {
-        require(listContains(holders, msg.sender), "msg.sender is not a shareholder.");
+        require(isShareHolder[msg.sender], "msg.sender is not a shareholder.");
         IERC20(rewardToken ).safeTransfer( msg.sender, claimableReward[msg.sender]);
 
         emit RewardCollected(claimableReward[msg.sender], msg.sender);
@@ -552,8 +554,9 @@ contract EasyBlock {
 
         totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price));
 
-        if(!listContains(holders, msg.sender)) {
+        if(!isShareHolder[msg.sender]) {
             holders.push(msg.sender);
+            isShareHolder[msg.sender] = true;
             holderCount += 1;
             shareCount[msg.sender] = 0;
         }
@@ -565,7 +568,7 @@ contract EasyBlock {
     }
 
     // HELPERS START
-    /** (Taken from OlympusDAO)
+    /**
         @notice checks array to ensure against duplicate
         @param _list address[]
         @param _token address
