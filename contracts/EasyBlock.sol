@@ -428,14 +428,12 @@ contract EasyBlock {
     }
 
     // Controller toggles
-    function toggleSharePurchaseEnabled() external {
-        require(msg.sender == manager, "Not Authorized!");
+    function toggleSharePurchaseEnabled() external onlyOwner{
         sharePurchaseEnabled = !sharePurchaseEnabled;
     }
 
     // Deposit to Purchase Methods
-    function addPurchaseToken(address _tokenAddress, uint _tokenPrice) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function addPurchaseToken(address _tokenAddress, uint _tokenPrice) external onlyOwner{
         require(!listContains(purchaseTokens, _tokenAddress), "Token already added.");
 
         purchaseTokens.push(_tokenAddress);
@@ -444,50 +442,42 @@ contract EasyBlock {
         newInvestments[_tokenAddress] = 0;
     }
 
-    function editPurchaseToken(address _tokenAddress, uint _tokenPrice) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function editPurchaseToken(address _tokenAddress, uint _tokenPrice) external onlyOwner{
         require(listContains(purchaseTokens, _tokenAddress), "Token is not a purchase asset.");
 
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
     }
 
     // Deposit to Share Rewards Methods
-    function setDepositToken(address _tokenAddress) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setDepositToken(address _tokenAddress) external onlyOwner{
         rewardToken = _tokenAddress;
     }
 
     // NodeHolders
-    function setNodeHolder(address _address) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setNodeHolder(address _address) external onlyOwner{
         require(!listContains(nodeHolders, _address), "Address already added.");
         nodeHolders.push(_address);
         nodeHoldersCount += 1;
     }
 
-    function setNodeCount(uint _count) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setNodeCount(uint _count) external onlyOwner{
         nodeCount = _count;
     }
 
     // Manager Related Methods
-    function setManager(address _address) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setManager(address _address) external onlyOwner{
         manager = _address;
     }
 
-    function setFeeCollector(address _address) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setFeeCollector(address _address) external onlyOwner{
         feeCollector = _address;
     }
 
-    function setFee(uint _fee) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function setFee(uint _fee) external onlyOwner{
         fee = _fee;
     }
 
-    function withdrawToManager(address _token, uint _amount) external {
-        require(msg.sender == manager, "Not Authorized!");
+    function withdrawToManager(address _token, uint _amount) external onlyOwner{
         require(listContains(purchaseTokens, _token), "Not a purchase token.");
         require(newInvestments[_token] >= _amount, "Not enough investment.");
         IERC20( _token ).safeTransfer( manager, _amount);
@@ -515,8 +505,9 @@ contract EasyBlock {
         }
     }
 
-    function transferSharesFromManager(address _targetAddress, uint _shareAmount) external{
-        require(msg.sender == manager, "Not Authorized!");
+    function addHolder(address _holder, uint _shareCount) external {
+        if(!isShareHolder[_holder]) {
+    function transferSharesFromManager(address _targetAddress, uint _shareAmount) external onlyOwner{
         require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
         if(!isShareHolder[_targetAddress]) {
             holders.push(_targetAddress);
@@ -583,4 +574,10 @@ contract EasyBlock {
         return false;
     }
     // HELPERS END
+
+    // Modifiers
+    modifier onlyOwner() {
+        require(msg.sender == manager);
+        _;
+    }
 }
