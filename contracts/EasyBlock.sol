@@ -515,6 +515,7 @@ contract EasyBlock {
     uint256 public totalInvestmentsInUSD;
     uint256 public totalRewardsDistributedInUSD;
     mapping(address => uint256) public totalUserRewards;
+    uint256 public rewardAmountInside = 0;
     // Protocol controllers
     bool public sharePurchaseEnabled;
     // Migartion
@@ -711,11 +712,6 @@ contract EasyBlock {
         uint256 _amount
     ) external {
         uint256 _addedRewards = 0;
-        // Stats
-        uint256 tenToThePowerDecimals = 10**IERC20(rewardToken).decimals();
-        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add(
-            _amount.div(tenToThePowerDecimals)
-        );
         // Fees
         uint256 _feeAmount = fee.mul(_amount).div(1000);
         _amount = _amount.sub(_feeAmount);
@@ -733,13 +729,19 @@ contract EasyBlock {
                 .add(_userReward);
             _addedRewards = _addedRewards.add(_userReward);
         }
+        // Stats
+        uint256 tenToThePowerDecimals = 10**IERC20(rewardToken).decimals();
+        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add(
+            _addedRewards.div(tenToThePowerDecimals)
+        );
+        rewardAmountInside = rewardAmountInside.add(_addedRewards);
         // Transfer the rewards
         IERC20(rewardToken).safeTransferFrom(
             msg.sender,
             address(this),
             _addedRewards
         );
-        // Transfer the fees
+        // Transfer the fee
         IERC20(rewardToken).safeTransferFrom(
             msg.sender,
             feeCollector,
@@ -768,6 +770,11 @@ contract EasyBlock {
         require(isShareHolder[msg.sender], "msg.sender is not a shareholder.");
         IERC20(rewardToken).safeTransfer(
             msg.sender,
+            claimableReward[msg.sender]
+        );
+
+        // Stats
+        rewardAmountInside = rewardAmountInside.sub(
             claimableReward[msg.sender]
         );
 
