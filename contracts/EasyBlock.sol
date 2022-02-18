@@ -678,6 +678,7 @@ contract EasyBlock {
         fee = _fee;
     }
 
+    // Withdrawals
     function withdrawToManager(address _token, uint256 _amount)
         external
         onlyOwner
@@ -696,6 +697,13 @@ contract EasyBlock {
         require(premiumCollected[_token] >= _amount, "Not enough premium");
         IERC20(_token).safeTransfer(manager, _amount);
         premiumCollected[_token] = premiumCollected[_token].sub(_amount);
+    }
+
+    function emergencyWithdrawal(address _token, uint256 _amount)
+        external
+        onlyOwner
+    {
+        IERC20(_token).safeTransfer(manager, _amount);
     }
 
     function depositRewards(uint256 _amount) external {
