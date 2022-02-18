@@ -497,7 +497,6 @@ contract EasyBlock {
     // Manager Info
     address public manager;
     uint256 public fee = 0; // per 1000
-    uint256 public accumulatedFees = 0;
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -706,13 +705,12 @@ contract EasyBlock {
         IERC20(_token).safeTransfer(manager, _amount);
     }
 
-    function depositRewards(uint256 _amount) external {
-        // Execute Deposit
-        IERC20(rewardToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount
-        );
+    function depositRewards(
+        uint256 _start,
+        uint256 _end,
+        uint256 _amount
+    ) external {
+        uint256 _addedRewards = 0;
         // Stats
         uint256 tenToThePowerDecimals = 10**IERC20(rewardToken).decimals();
         totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add(
@@ -720,11 +718,10 @@ contract EasyBlock {
         );
         // Fees
         uint256 _feeAmount = fee.mul(_amount).div(1000);
-        accumulatedFees = accumulatedFees.add(_feeAmount);
         _amount = _amount.sub(_feeAmount);
         // Reward per share
         uint256 _rewardPerShare = _amount.div(totalShareCount);
-        for (uint256 _i = 0; _i < holders.length; _i++) {
+        for (uint256 _i = _start; _i < _end; _i++) {
             address _currentHolder = holders[_i];
             uint256 _userReward = _rewardPerShare.mul(
                 shareCount[_currentHolder]
@@ -734,7 +731,20 @@ contract EasyBlock {
 
             totalUserRewards[_currentHolder] = totalUserRewards[_currentHolder]
                 .add(_userReward);
+            _addedRewards = _addedRewards.add(_userReward);
         }
+        // Transfer the rewards
+        IERC20(rewardToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _addedRewards
+        );
+        // Transfer the fees
+        IERC20(rewardToken).safeTransferFrom(
+            msg.sender,
+            feeCollector,
+            _addedRewards.div(1000 - fee).mul(fee)
+        );
     }
 
     function transferSharesFromManager(
@@ -751,12 +761,6 @@ contract EasyBlock {
         shareCount[_targetAddress] = shareCount[_targetAddress].add(
             _shareAmount
         );
-    }
-
-    function claimFees() external {
-        require(msg.sender == feeCollector, "Not fee collector");
-        IERC20(rewardToken).safeTransfer(feeCollector, accumulatedFees);
-        accumulatedFees = 0;
     }
 
     // Shareholder Methods
