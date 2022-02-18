@@ -803,7 +803,7 @@ contract EasyBlock {
         claimableReward[_holder] = 0;
         totalUserRewards[_holder] = 0;
 
-        shareCount[_holder] = shareCount;
+        shareCount[_holder] = _shareCount;
         totalShareCount = totalShareCount.add(_shareCount);
     }
 
