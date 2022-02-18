@@ -501,12 +501,11 @@ contract EasyBlock {
     // Deposit Token
     address public rewardToken;
     // Purchase Tokens
-    address[] public purchaseTokens;
-    uint256 public purchaseTokensCount;
-    mapping(address => uint256) public purchaseTokensPrice; // In decimals
-    mapping(address => uint256) public newInvestments;
-    mapping(address => uint256) public purchaseTokenPremium;
-    mapping(address => uint256) public premiumCollected;
+    address public purchaseToken;
+    uint256 public purchaseTokenPrice; // In decimals
+    uint256 public newInvestments = 0;
+    uint256 public purchaseTokenPremium;
+    uint256 public premiumCollected = 0;
     // StrongBlock Node Holders
     address[] public nodeHolders;
     uint256 public nodeHoldersCount;
@@ -577,14 +576,15 @@ contract EasyBlock {
             "Not enough shares to sell"
         );
         uint256 _sellPricePercentage = 1000 - sellFee;
-        uint256 _sellPrice = purchaseTokensPrice[sellToken]
-            .mul(_sellPricePercentage)
-            .div(1000);
+        uint256 _sellPrice = purchaseTokenPrice.mul(_sellPricePercentage).div(
+            1000
+        );
         uint256 _sellAmount = _shareAmount.mul(_sellPrice);
         require(_sellAmount <= sellAllowance, "Not enough allowance to sell");
 
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         totalSharesSold = totalSharesSold.add(_shareAmount);
+        totalShareCount = totalShareCount.sub(_shareAmount);
 
         IERC20(sellToken).safeTransfer(msg.sender, _sellAmount);
 
@@ -593,9 +593,9 @@ contract EasyBlock {
 
     function getMaxAmountOfSharesToBeSold() external view returns (uint256) {
         uint256 _sellPricePercentage = 1000 - sellFee;
-        uint256 _sellPrice = purchaseTokensPrice[sellToken]
-            .mul(_sellPricePercentage)
-            .div(1000);
+        uint256 _sellPrice = purchaseTokenPrice.mul(_sellPricePercentage).div(
+            1000
+        );
         uint256 _maxAmount = sellAllowance.div(_sellPrice);
         return _maxAmount;
     }
@@ -606,47 +606,16 @@ contract EasyBlock {
     }
 
     // Deposit to Purchase Methods
-    function addPurchaseToken(address _tokenAddress, uint256 _tokenPrice)
-        external
-        onlyOwner
-    {
-        require(
-            !listContains(purchaseTokens, _tokenAddress),
-            "Token already added."
-        );
-
-        purchaseTokens.push(_tokenAddress);
-        purchaseTokensCount += 1;
-        purchaseTokensPrice[_tokenAddress] = _tokenPrice;
-        newInvestments[_tokenAddress] = 0;
-
-        // Premium
-        purchaseTokenPremium[_tokenAddress] = 0;
-        premiumCollected[_tokenAddress] = 0;
+    function editPurchaseToken(address _tokenAddress) external onlyOwner {
+        purchaseToken = _tokenAddress;
     }
 
-    function editPurchaseToken(address _tokenAddress, uint256 _tokenPrice)
-        external
-        onlyOwner
-    {
-        require(
-            listContains(purchaseTokens, _tokenAddress),
-            "Token is not a purchase asset."
-        );
-
-        purchaseTokensPrice[_tokenAddress] = _tokenPrice;
+    function editPurchasePrice(uint256 _price) external onlyOwner {
+        purchaseTokenPrice = _price;
     }
 
-    function editTokenPremium(address _tokenAddress, uint256 _tokenPremium)
-        external
-        onlyOwner
-    {
-        require(
-            listContains(purchaseTokens, _tokenAddress),
-            "Token is not a purchase asset."
-        );
-
-        purchaseTokenPremium[_tokenAddress] = _tokenPremium;
+    function editTokenPremium(uint256 _tokenPremium) external onlyOwner {
+        purchaseTokenPremium = _tokenPremium;
     }
 
     // Deposit to Share Rewards Methods
@@ -656,7 +625,6 @@ contract EasyBlock {
 
     // NodeHolders
     function setNodeHolder(address _address) external onlyOwner {
-        require(!listContains(nodeHolders, _address), "Address already added.");
         nodeHolders.push(_address);
         nodeHoldersCount += 1;
     }
@@ -679,24 +647,14 @@ contract EasyBlock {
     }
 
     // Withdrawals
-    function withdrawToManager(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        require(listContains(purchaseTokens, _token), "Not a purchase token.");
-        require(newInvestments[_token] >= _amount, "Not enough investment.");
-        IERC20(_token).safeTransfer(manager, _amount);
-        newInvestments[_token] = newInvestments[_token].sub(_amount);
+    function withdrawToManager() external onlyOwner {
+        IERC20(purchaseToken).safeTransfer(manager, newInvestments);
+        newInvestments = 0;
     }
 
-    function withdrawPremiumToManager(address _token, uint256 _amount)
-        external
-        onlyOwner
-    {
-        require(listContains(purchaseTokens, _token), "Not a purchase token.");
-        require(premiumCollected[_token] >= _amount, "Not enough premium");
-        IERC20(_token).safeTransfer(manager, _amount);
-        premiumCollected[_token] = premiumCollected[_token].sub(_amount);
+    function withdrawPremiumToManager() external onlyOwner {
+        IERC20(purchaseToken).safeTransfer(manager, premiumCollected);
+        premiumCollected = 0;
     }
 
     function emergencyWithdrawal(address _token, uint256 _amount)
@@ -783,25 +741,28 @@ contract EasyBlock {
         claimableReward[msg.sender] = 0;
     }
 
-    function buyShares(address _token, uint256 _shareCount) external {
-        require(listContains(purchaseTokens, _token), "Not a Purchase Token.");
+    function getSharePrice() public view returns (uint256) {
+        uint256 _price = purchaseTokenPrice.add(purchaseTokenPremium);
+        return _price;
+    }
+
+    function buyShares(uint256 _shareCount) external {
         require(
             sharePurchaseEnabled,
             "Shares are not purchasable at the moment."
         );
+        uint256 _totalPrice = getSharePrice();
 
-        uint256 _tokenDecimals = IERC20(_token).decimals();
+        uint256 _tokenDecimals = IERC20(purchaseToken).decimals();
         uint256 _tenToThePowerDecimals = 10**_tokenDecimals;
-        uint256 _price = purchaseTokensPrice[_token];
-        uint256 _premium = purchaseTokenPremium[_token];
-        IERC20(_token).safeTransferFrom(
+        IERC20(purchaseToken).safeTransferFrom(
             msg.sender,
             address(this),
-            (_price.add(_premium)).mul(_shareCount)
+            _totalPrice.mul(_shareCount)
         );
 
         totalInvestmentsInUSD = totalInvestmentsInUSD.add(
-            _shareCount.mul(_price).div(_tenToThePowerDecimals)
+            _shareCount.mul(purchaseTokenPrice).div(_tenToThePowerDecimals)
         );
 
         if (!isShareHolder[msg.sender]) {
@@ -812,14 +773,18 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
         totalShareCount = totalShareCount.add(_shareCount);
-        newInvestments[_token] = newInvestments[_token].add(
-            _price.mul(_shareCount)
+        newInvestments = newInvestments.add(
+            purchaseTokenPrice.mul(_shareCount)
         );
-        premiumCollected[_token] = premiumCollected[_token].add(
-            _premium.mul(_shareCount)
+        premiumCollected = premiumCollected.add(
+            purchaseTokenPremium.mul(_shareCount)
         );
 
-        emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
+        emit Investment(
+            _shareCount,
+            purchaseTokenPrice.mul(_shareCount),
+            msg.sender
+        );
     }
 
     // MIGRATION START
@@ -827,18 +792,18 @@ contract EasyBlock {
         isMigrating = false;
     }
 
-    function addHolder(address _holder, uint256 _shareCount) public onlyOwner {
-        require(isMigrating, "Migration is not in progress.");
-        if (!isShareHolder[_holder]) {
-            holders.push(_holder);
-            isShareHolder[_holder] = true;
-            holderCount += 1;
-            shareCount[_holder] = 0;
+    function addHolder(address _holder, uint256 _shareCount)
+        internal
+        onlyOwner
+    {
+        holders.push(_holder);
+        isShareHolder[_holder] = true;
+        holderCount += 1;
 
-            claimableReward[_holder] = 0;
-            totalUserRewards[_holder] = 0;
-        }
-        shareCount[_holder] = shareCount[_holder].add(_shareCount);
+        claimableReward[_holder] = 0;
+        totalUserRewards[_holder] = 0;
+
+        shareCount[_holder] = shareCount;
         totalShareCount = totalShareCount.add(_shareCount);
     }
 
@@ -857,28 +822,6 @@ contract EasyBlock {
     }
 
     // MIGRATION END
-
-    // HELPERS START
-    /**
-        @notice checks array to ensure against duplicate
-        @param _list address[]
-        @param _token address
-        @return bool
-     */
-    function listContains(address[] storage _list, address _token)
-        internal
-        view
-        returns (bool)
-    {
-        for (uint256 i = 0; i < _list.length; i++) {
-            if (_list[i] == _token) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // HELPERS END
 
     // Modifiers
     modifier onlyOwner() {
