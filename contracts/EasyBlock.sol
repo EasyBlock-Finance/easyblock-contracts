@@ -511,8 +511,8 @@ contract EasyBlock {
     uint256 public nodeHoldersCount;
     uint256 public nodeCount;
     // Statistic Variables
-    uint256 public totalInvestmentsInUSD;
-    uint256 public totalRewardsDistributedInUSD;
+    uint256 public totalInvestment;
+    uint256 public totalRewardsDistributed;
     mapping(address => uint256) public totalUserRewards;
     uint256 public rewardAmountInside = 0;
     // Protocol controllers
@@ -549,8 +549,8 @@ contract EasyBlock {
         fee = _fee;
         feeCollector = msg.sender;
 
-        totalInvestmentsInUSD = _totalInvestment;
-        totalRewardsDistributedInUSD = _totalRewards;
+        totalInvestment = _totalInvestment;
+        totalRewardsDistributed = _totalRewards;
         sharePurchaseEnabled = false;
 
         // Migration
@@ -688,9 +688,8 @@ contract EasyBlock {
             _addedRewards = _addedRewards.add(_userReward);
         }
         // Stats
-        uint256 tenToThePowerDecimals = 10**IERC20(rewardToken).decimals();
-        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add(
-            _addedRewards.div(tenToThePowerDecimals)
+        totalRewardsDistributed = totalRewardsDistributed.add(
+            _addedRewards
         );
         rewardAmountInside = rewardAmountInside.add(_addedRewards);
         // Transfer the rewards
@@ -753,16 +752,14 @@ contract EasyBlock {
         );
         uint256 _totalPrice = getSharePrice();
 
-        uint256 _tokenDecimals = IERC20(purchaseToken).decimals();
-        uint256 _tenToThePowerDecimals = 10**_tokenDecimals;
         IERC20(purchaseToken).safeTransferFrom(
             msg.sender,
             address(this),
             _totalPrice.mul(_shareCount)
         );
 
-        totalInvestmentsInUSD = totalInvestmentsInUSD.add(
-            _shareCount.mul(purchaseTokenPrice).div(_tenToThePowerDecimals)
+        totalInvestment = totalInvestment.add(
+            _shareCount.mul(purchaseTokenPrice)
         );
 
         if (!isShareHolder[msg.sender]) {
