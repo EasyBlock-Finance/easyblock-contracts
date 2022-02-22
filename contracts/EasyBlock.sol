@@ -753,11 +753,12 @@ contract EasyBlock {
             "Shares are not purchasable at the moment."
         );
         uint256 _totalPrice = getSharePrice();
+        uint256 _totalAmount = _totalPrice * _shareCount;
 
         IERC20(purchaseToken).safeTransferFrom(
             msg.sender,
             address(this),
-            _totalPrice.mul(_shareCount)
+           _totalAmount
         );
 
         totalInvestment = totalInvestment.add(
