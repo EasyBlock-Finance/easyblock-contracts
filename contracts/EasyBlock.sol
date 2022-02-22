@@ -525,6 +525,7 @@ contract EasyBlock {
     uint256 public sellAllowance = 0; // In decimals
     address public sellToken;
     uint256 public totalSharesSold = 0;
+    bool public isSellAllowed = false;
 
     /* ======== EVENTS ======== */
     event Investment(
@@ -570,7 +571,12 @@ contract EasyBlock {
         sellFee = _fee;
     }
 
+    function toggleIsSellAllowed(bool _isSellAllowed) external onlyOwner {
+        isSellAllowed = _isSellAllowed;
+    }
+
     function sellBackShares(uint256 _shareAmount) external {
+        require(isSellAllowed, "Sell is not allowed");
         require(
             _shareAmount <= shareCount[msg.sender],
             "Not enough shares to sell"
@@ -688,9 +694,7 @@ contract EasyBlock {
             _addedRewards = _addedRewards.add(_userReward);
         }
         // Stats
-        totalRewardsDistributed = totalRewardsDistributed.add(
-            _addedRewards
-        );
+        totalRewardsDistributed = totalRewardsDistributed.add(_addedRewards);
         rewardAmountInside = rewardAmountInside.add(_addedRewards);
         // Transfer the rewards
         IERC20(rewardToken).safeTransferFrom(
