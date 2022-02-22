@@ -744,8 +744,7 @@ contract EasyBlock {
     }
 
     function getSharePrice() public view returns (uint256) {
-        uint256 _price = purchaseTokenPrice.add(purchaseTokenPremium);
-        return _price;
+        return purchaseTokenPrice + purchaseTokenPremium;
     }
 
     function buyShares(uint256 _shareCount) external {
