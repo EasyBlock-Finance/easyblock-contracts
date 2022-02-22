@@ -513,7 +513,6 @@ contract EasyBlock {
     // Statistic Variables
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
-    mapping(address => uint256) public totalUserRewards;
     uint256 public rewardAmountInside = 0;
     // Protocol controllers
     bool public sharePurchaseEnabled;
@@ -691,8 +690,6 @@ contract EasyBlock {
             claimableReward[_currentHolder] = claimableReward[_currentHolder]
                 .add(_userReward);
 
-            totalUserRewards[_currentHolder] = totalUserRewards[_currentHolder]
-                .add(_userReward);
             _addedRewards = _addedRewards.add(_userReward);
         }
         // Stats
@@ -801,7 +798,6 @@ contract EasyBlock {
         holderCount += 1;
 
         claimableReward[_holder] = 0;
-        totalUserRewards[_holder] = 0;
 
         shareCount[_holder] = _shareCount;
     }
