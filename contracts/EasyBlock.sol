@@ -672,29 +672,28 @@ contract EasyBlock {
     }
 
     function depositRewards(
-        uint256 _start,
-        uint256 _end,
+        uint32 _start,
+        uint32 _end,
         uint256 _amount
     ) external {
         uint256 _addedRewards = 0;
         // Fees
-        uint256 _feeAmount = fee.mul(_amount).div(1000);
-        _amount = _amount.sub(_feeAmount);
+        _amount = (_amount * (1000 - fee)) / 1000;
         // Reward per share
-        uint256 _rewardPerShare = _amount.div(totalShareCount);
-        for (uint256 _i = _start; _i < _end; _i++) {
+        uint256 _rewardPerShare = _amount / totalShareCount;
+        for (uint32 _i = _start; _i < _end; _i++) {
             address _currentHolder = holders[_i];
-            uint256 _userReward = _rewardPerShare.mul(
-                shareCount[_currentHolder]
-            );
-            claimableReward[_currentHolder] = claimableReward[_currentHolder]
-                .add(_userReward);
+            uint256 _userReward = _rewardPerShare * shareCount[_currentHolder];
 
-            _addedRewards = _addedRewards.add(_userReward);
+            claimableReward[_currentHolder] =
+                claimableReward[_currentHolder] +
+                _userReward;
+
+            _addedRewards += _userReward;
         }
         // Stats
-        totalRewardsDistributed = totalRewardsDistributed.add(_addedRewards);
-        rewardAmountInside = rewardAmountInside.add(_addedRewards);
+        totalRewardsDistributed += _addedRewards;
+        rewardAmountInside += _addedRewards;
         // Transfer the rewards
         IERC20(rewardToken).safeTransferFrom(
             msg.sender,
@@ -705,7 +704,7 @@ contract EasyBlock {
         IERC20(rewardToken).safeTransferFrom(
             msg.sender,
             feeCollector,
-            _addedRewards.div(1000 - fee).mul(fee)
+            (_addedRewards / (1000 - fee)) * fee
         );
     }
 
