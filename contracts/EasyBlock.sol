@@ -795,10 +795,7 @@ contract EasyBlock {
         isMigrating = false;
     }
 
-    function addHolder(address _holder, uint256 _shareCount)
-        internal
-        onlyOwner
-    {
+    function addHolder(address _holder, uint256 _shareCount) internal {
         holders.push(_holder);
         isShareHolder[_holder] = true;
         holderCount += 1;
@@ -807,19 +804,23 @@ contract EasyBlock {
         totalUserRewards[_holder] = 0;
 
         shareCount[_holder] = _shareCount;
-        totalShareCount = totalShareCount.add(_shareCount);
     }
 
-    function copyFromPrevious(uint32 _start, uint32 _end) external onlyOwner {
+    function copyFromPrevious(uint16 _start, uint16 _end) external onlyOwner {
         require(isMigrating, "Migration is not in progress.");
+        uint256 _additionToTotalShareCount = 0;
 
-        for (uint32 _i = _start; _i < _end; _i++) {
+        for (uint16 _i = _start; _i < _end; _i++) {
             // Calculate the reward
             address _currentHolder = easyContract.holders(_i);
             uint256 _shareCount = easyContract.shareCount(_currentHolder);
 
             addHolder(_currentHolder, _shareCount);
+
+            _additionToTotalShareCount += _shareCount;
         }
+
+        totalShareCount += _additionToTotalShareCount;
     }
 
     // MIGRATION END
