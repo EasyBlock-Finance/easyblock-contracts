@@ -734,9 +734,7 @@ contract EasyBlock {
         );
 
         // Stats
-        rewardAmountInside = rewardAmountInside.sub(
-            claimableReward[msg.sender]
-        );
+        rewardAmountInside -= claimableReward[msg.sender];
 
         emit RewardCollected(claimableReward[msg.sender], msg.sender);
 
@@ -758,7 +756,7 @@ contract EasyBlock {
         IERC20(purchaseToken).safeTransferFrom(
             msg.sender,
             address(this),
-           _totalAmount
+            _totalAmount
         );
 
         totalInvestment = totalInvestment.add(
