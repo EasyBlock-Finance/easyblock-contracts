@@ -520,6 +520,7 @@ contract EasyBlock {
     // Migartion
     bool public isMigrating = true;
     address public previousContract;
+    Easyblock easyContract;
     // Experimental sell function
     uint256 public sellFee = 0; // per 1000
     uint256 public sellAllowance = 0; // In decimals
@@ -556,6 +557,7 @@ contract EasyBlock {
 
         // Migration
         previousContract = _previousContract;
+        easyContract = Easyblock(previousContract);
     }
 
     // Experimental sell functions
@@ -810,13 +812,11 @@ contract EasyBlock {
 
     function copyFromPrevious(uint32 _start, uint32 _end) external onlyOwner {
         require(isMigrating, "Migration is not in progress.");
-        // Access the contract
-        Easyblock _easyContract = Easyblock(previousContract);
 
         for (uint32 _i = _start; _i < _end; _i++) {
             // Calculate the reward
-            address _currentHolder = _easyContract.holders(_i);
-            uint256 _shareCount = _easyContract.shareCount(_currentHolder);
+            address _currentHolder = easyContract.holders(_i);
+            uint256 _shareCount = easyContract.shareCount(_currentHolder);
 
             addHolder(_currentHolder, _shareCount);
         }
