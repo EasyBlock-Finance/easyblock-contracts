@@ -773,8 +773,8 @@ contract EasyBlock {
             holders.push(msg.sender);
             isShareHolder[msg.sender] = true;
             holderCount += 1;
-            shareCount[msg.sender] = 0;
         }
+        
         shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
         totalShareCount = totalShareCount.add(_shareCount);
         newInvestments = newInvestments.add(
