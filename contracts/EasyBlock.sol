@@ -565,6 +565,11 @@ contract EasyBlock {
     }
 
     function setSellAllowance(uint256 _allowance) external onlyOwner {
+        if (_allowance > sellAllowance) {
+            newInvestments -= (_allowance - sellAllowance);
+        } else {
+            newInvestments += (sellAllowance - _allowance);
+        }
         sellAllowance = _allowance;
     }
 
@@ -592,6 +597,8 @@ contract EasyBlock {
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         totalSharesSold = totalSharesSold.add(_shareAmount);
         totalShareCount = totalShareCount.sub(_shareAmount);
+
+        sellAllowance -= _sellAmount;
 
         IERC20(sellToken).safeTransfer(msg.sender, _sellAmount);
 
