@@ -801,8 +801,6 @@ contract EasyBlock {
         isShareHolder[_holder] = true;
         holderCount += 1;
 
-        claimableReward[_holder] = 0;
-
         shareCount[_holder] = _shareCount;
     }
 
