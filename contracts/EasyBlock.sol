@@ -526,6 +526,7 @@ contract EasyBlock {
     address public sellToken;
     uint256 public totalSharesSold = 0;
     bool public isSellAllowed = false;
+    uint256 public totalAmountOfSellBack = 0;
 
     /* ======== EVENTS ======== */
     event Investment(
@@ -581,6 +582,10 @@ contract EasyBlock {
         isSellAllowed = _isSellAllowed;
     }
 
+    function getSellPrice() external view returns(uint256){
+        return purchaseTokenPrice * (1000 - sellFee) / 1000;
+    }
+
     function sellBackShares(uint256 _shareAmount) external {
         require(isSellAllowed, "Sell is not allowed");
         require(
@@ -596,6 +601,7 @@ contract EasyBlock {
 
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         totalSharesSold = totalSharesSold.add(_shareAmount);
+        totalAmountOfSellBack += _sellAmount;
         totalShareCount = totalShareCount.sub(_shareAmount);
 
         sellAllowance -= _sellAmount;
