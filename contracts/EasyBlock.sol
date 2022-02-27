@@ -582,7 +582,7 @@ contract EasyBlock {
         isSellAllowed = _isSellAllowed;
     }
 
-    function getSellPrice() external view returns(uint256){
+    function getSellPrice() public view returns(uint256){
         return purchaseTokenPrice * (1000 - sellFee) / 1000;
     }
 
@@ -592,18 +592,14 @@ contract EasyBlock {
             _shareAmount <= shareCount[msg.sender],
             "Not enough shares to sell"
         );
-        uint256 _sellPricePercentage = 1000 - sellFee;
-        uint256 _sellPrice = purchaseTokenPrice.mul(_sellPricePercentage).div(
-            1000
-        );
-        uint256 _sellAmount = _shareAmount.mul(_sellPrice);
+        uint256 _sellAmount = _shareAmount * getSellPrice();
         require(_sellAmount <= sellAllowance, "Not enough allowance to sell");
 
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
-        totalSharesSold = totalSharesSold.add(_shareAmount);
+        
+        totalSharesSold += _shareAmount;
         totalAmountOfSellBack += _sellAmount;
-        totalShareCount = totalShareCount.sub(_shareAmount);
-
+        totalShareCount -= _shareAmount;
         sellAllowance -= _sellAmount;
 
         IERC20(sellToken).safeTransfer(msg.sender, _sellAmount);
