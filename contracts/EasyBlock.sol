@@ -526,6 +526,8 @@ contract EasyBlock {
     uint256 public totalSharesSold = 0;
     bool public isSellAllowed = false;
     uint256 public totalAmountOfSellBack = 0;
+    // Transfer share feature
+    bool public isTransferEnabled = false;
 
     /* ======== EVENTS ======== */
     event Investment(
@@ -716,11 +718,15 @@ contract EasyBlock {
         );
     }
 
-    function transferSharesFromManager(
-        address _targetAddress,
-        uint256 _shareAmount
-    ) external onlyOwner {
+    // Transfer feature
+    function toggleTransferEnabled(bool _isTransferEnabled) external onlyOwner {
+        isTransferEnabled = _isTransferEnabled;
+    }
+
+    function transferShares(address _targetAddress, uint256 _shareAmount) external {
+        require(msg.sender == manager || isTransferEnabled, "Can't transfer shares");
         require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
+
         if (!isShareHolder[_targetAddress]) {
             holders.push(_targetAddress);
             isShareHolder[_targetAddress] = true;
@@ -728,7 +734,7 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         shareCount[_targetAddress] = shareCount[_targetAddress].add(
-            _shareAmount
+        _shareAmount
         );
     }
 
