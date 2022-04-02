@@ -492,7 +492,7 @@ contract EasyBlock {
     uint256 public rewardAmountInside = 0;
     // Manager Info
     address public manager;
-    uint256 public fee = 0; // per 1000
+    uint256 public rewardFee = 0; // per 1000
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -532,14 +532,15 @@ contract EasyBlock {
     );
 
     constructor(
-        uint256 _fee,
+        uint256 _rewardFee,
         address _previousContract,
         uint256 _totalInvestment,
         uint256 _totalRewards
     ) {
         manager = msg.sender;
-        fee = _fee;
         feeCollector = msg.sender;
+
+        rewardFee = _rewardFee;
 
         totalInvestment = _totalInvestment;
         totalRewardsDistributed = _totalRewards;
@@ -644,8 +645,8 @@ contract EasyBlock {
         feeCollector = _address;
     }
 
-    function setFee(uint256 _fee) external onlyOwner {
-        fee = _fee;
+    function setRewardFee(uint256 _fee) external onlyOwner {
+        rewardFee = _fee;
     }
 
     // Withdrawals
@@ -673,7 +674,7 @@ contract EasyBlock {
     ) external {
         uint256 _addedRewards = 0;
         // Fees
-        _amount = (_amount * (1000 - fee)) / 1000;
+        _amount = (_amount * (1000 - rewardFee)) / 1000;
         // Reward per share
         uint256 _rewardPerShare = _amount / totalShareCount;
         for (uint32 _i = _start; _i < _end; _i++) {
@@ -699,7 +700,7 @@ contract EasyBlock {
         IERC20(rewardToken).safeTransferFrom(
             msg.sender,
             feeCollector,
-            (_addedRewards / (1000 - fee)) * fee
+            (_addedRewards / (1000 - rewardFee)) * rewardFee
         );
     }
 
