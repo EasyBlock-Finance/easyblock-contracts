@@ -680,6 +680,7 @@ contract EasyBlock {
         IERC20(_token).safeTransfer(manager, _amount);
     }
 
+    // Reward related functions
     function depositRewards(
         uint32 _start,
         uint32 _end,
@@ -715,6 +716,29 @@ contract EasyBlock {
             feeCollector,
             (_addedRewards / (1000 - rewardFee)) * rewardFee
         );
+    }
+
+    function distributeRewardsDirectly(
+        uint32 _start,
+        uint32 _end,
+        uint256 _rewardAmount
+    ) external onlyOwner {
+        // Reward per share
+        uint256 _rewardPerShare = _rewardAmount / totalShareCount;
+
+        for (uint32 _i = _start; _i < _end; _i++) {
+            // Calculate the reward
+            address _currentHolder = holders[_i];
+            uint256 _shareCount = shareCount[_currentHolder];
+            uint256 _rewardToBeDistributed = _rewardPerShare * _shareCount;
+
+            // Distribute
+            IERC20(rewardToken).safeTransferFrom(
+                msg.sender,
+                _currentHolder,
+                _rewardToBeDistributed
+            );
+        }
     }
 
     // Transfer feature
