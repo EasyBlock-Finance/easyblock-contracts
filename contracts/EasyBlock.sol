@@ -575,8 +575,8 @@ contract EasyBlock {
         isSellAllowed = _isSellAllowed;
     }
 
-    function getSellPrice() public view returns(uint256){
-        return purchaseTokenPrice * (1000 - sellFee) / 1000;
+    function getSellPrice() public view returns (uint256) {
+        return (purchaseTokenPrice * (1000 - sellFee)) / 1000;
     }
 
     function sellBackShares(uint256 _shareAmount) external {
@@ -589,7 +589,7 @@ contract EasyBlock {
         require(_sellAmount <= sellAllowance, "Not enough allowance to sell");
 
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
-        
+
         totalSharesSold += _shareAmount;
         totalAmountOfSellBack += _sellAmount;
         totalShareCount -= _shareAmount;
@@ -736,9 +736,11 @@ contract EasyBlock {
             uint256 _rewardToBeDistributed = _rewardPerShare * _shareCount;
 
             // Check for auto-compounding
-            if (isAutoCompounding[_currentHolder]){
+            if (isAutoCompounding[_currentHolder]) {
                 uint256 _shareAmount = _rewardToBeDistributed / _sharePrice;
-                shareCount[_currentHolder] = shareCount[_currentHolder] + _shareAmount;
+                shareCount[_currentHolder] =
+                    shareCount[_currentHolder] +
+                    _shareAmount;
                 totalSharesSold += _shareAmount;
             } else {
                 // Distribute
@@ -756,8 +758,13 @@ contract EasyBlock {
         isTransferEnabled = _isTransferEnabled;
     }
 
-    function transferShares(address _targetAddress, uint256 _shareAmount) external {
-        require(msg.sender == manager || isTransferEnabled, "Can't transfer shares");
+    function transferShares(address _targetAddress, uint256 _shareAmount)
+        external
+    {
+        require(
+            msg.sender == manager || isTransferEnabled,
+            "Can't transfer shares"
+        );
         require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
 
         if (!isShareHolder[_targetAddress]) {
@@ -767,7 +774,7 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         shareCount[_targetAddress] = shareCount[_targetAddress].add(
-        _shareAmount
+            _shareAmount
         );
     }
 
@@ -800,12 +807,15 @@ contract EasyBlock {
         uint256 _totalAmount = _totalPrice * _shareCount;
 
         // Initial fee
-        uint256 _initialFeeAmount = purchaseTokenPrice * _shareCount * initialFee / 1000;
+        uint256 _initialFeeAmount = (purchaseTokenPrice *
+            _shareCount *
+            initialFee) / 1000;
         uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
 
         // Check for referal
-        if (_referer != address(0) && isShareHolder[_referer]) { // Referer should be a shareholder
-            uint256 _referFeeAmount = _initialFeeAmount * referFee / 1000;
+        if (_referer != address(0) && isShareHolder[_referer]) {
+            // Referer should be a shareholder
+            uint256 _referFeeAmount = (_initialFeeAmount * referFee) / 1000;
             _initialFeeAmount -= _referFeeAmount;
             // Transfer the referer fee
             IERC20(purchaseToken).safeTransferFrom(
@@ -841,11 +851,11 @@ contract EasyBlock {
             isShareHolder[msg.sender] = true;
             holderCount += 1;
         }
-        
+
         shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
         totalShareCount = totalShareCount.add(_shareCount);
         newInvestments = newInvestments.add(
-            purchaseTokenPrice.mul(_shareCount) * (1000 - initialFee) / 1000
+            (purchaseTokenPrice.mul(_shareCount) * (1000 - initialFee)) / 1000
         );
         premiumCollected = premiumCollected.add(
             purchaseTokenPremium.mul(_shareCount)
