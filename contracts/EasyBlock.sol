@@ -488,12 +488,15 @@ contract EasyBlock {
 
     // Shareholder Info
     address[] public holders;
-    uint256 public holderCount;
     mapping(address => uint256) public shareCount;
     mapping(address => uint256) public claimableReward;
     mapping(address => bool) public isShareHolder;
-
+    // General Info
     uint256 public totalShareCount = 0;
+    uint256 public holderCount;
+    uint256 public totalInvestment;
+    uint256 public totalRewardsDistributed;
+    uint256 public rewardAmountInside = 0;
     // Manager Info
     address public manager;
     uint256 public fee = 0; // per 1000
@@ -510,13 +513,9 @@ contract EasyBlock {
     address[] public nodeHolders;
     uint256 public nodeHoldersCount;
     uint256 public nodeCount;
-    // Statistic Variables
-    uint256 public totalInvestment;
-    uint256 public totalRewardsDistributed;
-    uint256 public rewardAmountInside = 0;
     // Protocol controllers
     bool public sharePurchaseEnabled;
-    // Migartion
+    // Migration
     bool public isMigrating = true;
     address public previousContract;
     Easyblock easyContract;
