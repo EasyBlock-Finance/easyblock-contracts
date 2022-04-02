@@ -475,13 +475,6 @@ library SafeERC20 {
 
 // LIBRARIES END
 
-// PREVIOUS EASYBLOCK CONTRACT INTERFACE
-interface Easyblock {
-    function holders(uint256 _index) external view returns (address);
-
-    function shareCount(address _address) external view returns (uint256);
-}
-
 contract EasyBlock {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -515,10 +508,6 @@ contract EasyBlock {
     uint256 public nodeCount;
     // Protocol controllers
     bool public sharePurchaseEnabled;
-    // Migration
-    bool public isMigrating = true;
-    address public previousContract;
-    Easyblock easyContract;
     // Experimental sell function
     uint256 public sellFee = 0; // per 1000
     uint256 public sellAllowance = 0; // In decimals
@@ -555,10 +544,6 @@ contract EasyBlock {
         totalInvestment = _totalInvestment;
         totalRewardsDistributed = _totalRewards;
         sharePurchaseEnabled = false;
-
-        // Migration
-        previousContract = _previousContract;
-        easyContract = Easyblock(previousContract);
     }
 
     // Experimental sell functions
@@ -797,38 +782,6 @@ contract EasyBlock {
             msg.sender
         );
     }
-
-    // MIGRATION START
-    function endMigartion() external onlyOwner {
-        isMigrating = false;
-    }
-
-    function addHolder(address _holder, uint256 _shareCount) internal {
-        holders.push(_holder);
-        isShareHolder[_holder] = true;
-        holderCount += 1;
-
-        shareCount[_holder] = _shareCount;
-    }
-
-    function copyFromPrevious(uint16 _start, uint16 _end) external onlyOwner {
-        require(isMigrating, "Migration is not in progress.");
-        uint256 _additionToTotalShareCount = 0;
-
-        for (uint16 _i = _start; _i < _end; _i++) {
-            // Calculate the reward
-            address _currentHolder = easyContract.holders(_i);
-            uint256 _shareCount = easyContract.shareCount(_currentHolder);
-
-            addHolder(_currentHolder, _shareCount);
-
-            _additionToTotalShareCount += _shareCount;
-        }
-
-        totalShareCount += _additionToTotalShareCount;
-    }
-
-    // MIGRATION END
 
     // Modifiers
     modifier onlyOwner() {
