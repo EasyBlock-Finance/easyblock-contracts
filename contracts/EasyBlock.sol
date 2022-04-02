@@ -482,9 +482,10 @@ contract EasyBlock {
     // Shareholder Info
     address[] public holders;
     mapping(address => uint256) public shareCount;
+    mapping(address => uint256) public referFeeEarned;
     mapping(address => uint256) public claimableReward;
     mapping(address => bool) public isShareHolder;
-    mapping(address => uint256) public referFeeEarned;
+    mapping(address => bool) public isAutoCompounding;
     // General Info
     uint256 public totalShareCount = 0;
     uint256 public holderCount;
@@ -718,11 +719,13 @@ contract EasyBlock {
         );
     }
 
+    // TODO: Should there be a non autocompounding version?
     function distributeRewardsDirectly(
         uint32 _start,
         uint32 _end,
         uint256 _rewardAmount
     ) external onlyOwner {
+        uint256 _sharePrice = getSharePrice();
         // Reward per share
         uint256 _rewardPerShare = _rewardAmount / totalShareCount;
 
@@ -732,12 +735,19 @@ contract EasyBlock {
             uint256 _shareCount = shareCount[_currentHolder];
             uint256 _rewardToBeDistributed = _rewardPerShare * _shareCount;
 
-            // Distribute
-            IERC20(rewardToken).safeTransferFrom(
-                msg.sender,
-                _currentHolder,
-                _rewardToBeDistributed
-            );
+            // Check for auto-compounding
+            if (isAutoCompounding[_currentHolder]){
+                uint256 _shareAmount = _rewardToBeDistributed / _sharePrice;
+                shareCount[_currentHolder] = shareCount[_currentHolder] + _shareAmount;
+                totalSharesSold += _shareAmount;
+            } else {
+                // Distribute
+                IERC20(rewardToken).safeTransferFrom(
+                    msg.sender,
+                    _currentHolder,
+                    _rewardToBeDistributed
+                );
+            }
         }
     }
 
@@ -846,6 +856,11 @@ contract EasyBlock {
             purchaseTokenPrice.mul(_shareCount),
             msg.sender
         );
+    }
+
+    // Auto-compouding
+    function setAutoCompounding(bool _isAutoCompounding) external {
+        isAutoCompounding[msg.sender] = _isAutoCompounding;
     }
 
     // Modifiers
