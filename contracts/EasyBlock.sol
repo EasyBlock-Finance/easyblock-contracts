@@ -493,6 +493,7 @@ contract EasyBlock {
     // Manager Info
     address public manager;
     uint256 public rewardFee = 0; // per 1000
+    uint256 public initialFee = 0; // per 1000
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -513,10 +514,10 @@ contract EasyBlock {
     uint256 public sellAllowance = 0; // In decimals
     address public sellToken;
     uint256 public totalSharesSold = 0;
-    bool public isSellAllowed = false;
+    bool public isSellAllowed;
     uint256 public totalAmountOfSellBack = 0;
     // Transfer share feature
-    bool public isTransferEnabled = false;
+    bool public isTransferEnabled;
 
     /* ======== EVENTS ======== */
     event Investment(
@@ -533,7 +534,7 @@ contract EasyBlock {
 
     constructor(
         uint256 _rewardFee,
-        address _previousContract,
+        uint256 _initialFee,
         uint256 _totalInvestment,
         uint256 _totalRewards
     ) {
@@ -541,10 +542,10 @@ contract EasyBlock {
         feeCollector = msg.sender;
 
         rewardFee = _rewardFee;
+        initialFee = _initialFee;
 
         totalInvestment = _totalInvestment;
         totalRewardsDistributed = _totalRewards;
-        sharePurchaseEnabled = false;
     }
 
     // Experimental sell functions
@@ -647,6 +648,10 @@ contract EasyBlock {
 
     function setRewardFee(uint256 _fee) external onlyOwner {
         rewardFee = _fee;
+    }
+
+    function setInitalFee(uint256 _fee) external onlyOwner {
+        initialFee = _fee;
     }
 
     // Withdrawals
@@ -752,10 +757,21 @@ contract EasyBlock {
         uint256 _totalPrice = getSharePrice();
         uint256 _totalAmount = _totalPrice * _shareCount;
 
+        // Initial fee
+        uint256 _initialFeeAmount = purchaseTokenPrice * _shareCount * initialFee / 1000;
+        uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
+
+        // Transfer to protocol
         IERC20(purchaseToken).safeTransferFrom(
             msg.sender,
             address(this),
-            _totalAmount
+            _transferToProtocolAmount
+        );
+        // Transfer of fee
+        IERC20(purchaseToken).safeTransferFrom(
+            msg.sender,
+            feeCollector,
+            _initialFeeAmount
         );
 
         totalInvestment = totalInvestment.add(
@@ -771,7 +787,7 @@ contract EasyBlock {
         shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
         totalShareCount = totalShareCount.add(_shareCount);
         newInvestments = newInvestments.add(
-            purchaseTokenPrice.mul(_shareCount)
+            purchaseTokenPrice.mul(_shareCount) * (1000 - initialFee) / 1000
         );
         premiumCollected = premiumCollected.add(
             purchaseTokenPremium.mul(_shareCount)
