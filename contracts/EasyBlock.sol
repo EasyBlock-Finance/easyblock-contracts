@@ -484,6 +484,7 @@ contract EasyBlock {
     mapping(address => uint256) public shareCount;
     mapping(address => uint256) public claimableReward;
     mapping(address => bool) public isShareHolder;
+    mapping(address => uint256) public referFeeEarned;
     // General Info
     uint256 public totalShareCount = 0;
     uint256 public holderCount;
@@ -492,8 +493,9 @@ contract EasyBlock {
     uint256 public rewardAmountInside = 0;
     // Manager Info
     address public manager;
-    uint256 public rewardFee = 0; // per 1000
-    uint256 public initialFee = 0; // per 1000
+    uint256 public rewardFee; // per 1000
+    uint256 public initialFee; // per 1000
+    uint256 public referFee; // per 1000 of the initial fee
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -535,6 +537,7 @@ contract EasyBlock {
     constructor(
         uint256 _rewardFee,
         uint256 _initialFee,
+        uint256 _referFee,
         uint256 _totalInvestment,
         uint256 _totalRewards
     ) {
@@ -543,6 +546,7 @@ contract EasyBlock {
 
         rewardFee = _rewardFee;
         initialFee = _initialFee;
+        referFee = _referFee;
 
         totalInvestment = _totalInvestment;
         totalRewardsDistributed = _totalRewards;
@@ -654,6 +658,10 @@ contract EasyBlock {
         initialFee = _fee;
     }
 
+    function setReferFee(uint256 _fee) external onlyOwner {
+        referFee = _fee;
+    }
+
     // Withdrawals
     function withdrawToManager() external onlyOwner {
         IERC20(purchaseToken).safeTransfer(manager, newInvestments);
@@ -749,7 +757,7 @@ contract EasyBlock {
         return purchaseTokenPrice + purchaseTokenPremium;
     }
 
-    function buyShares(uint256 _shareCount) external {
+    function buyShares(uint256 _shareCount, address _referer) external {
         require(
             sharePurchaseEnabled,
             "Shares are not purchasable at the moment."
@@ -760,6 +768,22 @@ contract EasyBlock {
         // Initial fee
         uint256 _initialFeeAmount = purchaseTokenPrice * _shareCount * initialFee / 1000;
         uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
+
+        // Check for referal
+        if (_referer != address(0) && isShareHolder[_referer]) { // Referer should be a shareholder
+            uint256 _referFeeAmount = _initialFeeAmount * referFee / 1000;
+            _initialFeeAmount -= _referFeeAmount;
+            // Transfer the referer fee
+            IERC20(purchaseToken).safeTransferFrom(
+                msg.sender,
+                _referer,
+                _referFeeAmount
+            );
+            // Increase the amount for stat reasons
+            referFeeEarned[_referer] += _referFeeAmount;
+            // TODO: Should I also keep track of the referral address and count?
+            // TODO: Benefit for the one who get's referred?
+        }
 
         // Transfer to protocol
         IERC20(purchaseToken).safeTransferFrom(
