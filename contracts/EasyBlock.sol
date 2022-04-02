@@ -873,6 +873,16 @@ contract EasyBlock {
         isAutoCompounding[msg.sender] = _isAutoCompounding;
     }
 
+    function getAutocompounderCount() public view returns (uint256) {
+        uint256 _count = 0;
+        for(uint256 _i = 0; _i < holders.length; _i++) {
+            if (isAutoCompounding[holders[_i]]) {
+                _count += 1;
+            }
+        }
+        return _count;
+    }
+
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == manager);
