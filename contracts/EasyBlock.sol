@@ -483,6 +483,7 @@ contract EasyBlock {
     address[] public holders;
     mapping(address => uint256) public shareCount;
     mapping(address => uint256) public referFeeEarned;
+    mapping(address => uint256) public referSaleCount;
     mapping(address => uint256) public claimableReward;
     mapping(address => bool) public isShareHolder;
     mapping(address => bool) public isAutoCompounding;
@@ -824,9 +825,8 @@ contract EasyBlock {
                 _referFeeAmount
             );
             // Increase the amount for stat reasons
-            referFeeEarned[_referer] += _referFeeAmount;
-            // TODO: Should I also keep track of the referral address and count?
-            // TODO: Benefit for the one who get's referred?
+            referFeeEarned[_referer] = referFeeEarned[_referer] + _referFeeAmount;
+            referSaleCount[_referer] = referSaleCount[_referer] + 1;
         }
 
         // Transfer to protocol
