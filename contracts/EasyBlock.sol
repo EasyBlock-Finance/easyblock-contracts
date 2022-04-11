@@ -498,7 +498,7 @@ contract EasyBlock {
     uint256 public rewardFee; // per 1000
     uint256 public initialFee; // per 1000
     uint256 public referFee; // per 1000 of the initial fee
-    mapping (address => uint256) public addressDiscount; // per 1000 of the initial fee
+    mapping(address => uint256) public addressDiscount; // per 1000 of the initial fee
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -815,7 +815,8 @@ contract EasyBlock {
         uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
 
         // Calculate address discount
-        uint256 _addressDiscountAmount = _initialFeeAmount  * addressDiscount[msg.sender] / 1000;
+        uint256 _addressDiscountAmount = (_initialFeeAmount *
+            addressDiscount[msg.sender]) / 1000;
 
         // Check for referal
         if (_referer != address(0) && isShareHolder[_referer]) {
@@ -829,7 +830,9 @@ contract EasyBlock {
                 _referFeeAmount
             );
             // Increase the amount for stat reasons
-            referFeeEarned[_referer] = referFeeEarned[_referer] + _referFeeAmount;
+            referFeeEarned[_referer] =
+                referFeeEarned[_referer] +
+                _referFeeAmount;
             referSaleCount[_referer] = referSaleCount[_referer] + 1;
         }
 
@@ -849,9 +852,9 @@ contract EasyBlock {
             _initialFeeAmount
         );
 
-        totalInvestment = totalInvestment.add(
-            _shareCount.mul(purchaseTokenPrice)
-        );
+        // Update general stats
+        totalInvestment += _shareCount * purchaseTokenPrice;
+        totalShareCount += _shareCount;
 
         if (!isShareHolder[msg.sender]) {
             holders.push(msg.sender);
@@ -860,7 +863,6 @@ contract EasyBlock {
         }
 
         shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
-        totalShareCount = totalShareCount.add(_shareCount);
         newInvestments = newInvestments.add(
             (purchaseTokenPrice.mul(_shareCount) * (1000 - initialFee)) / 1000
         );
@@ -882,7 +884,7 @@ contract EasyBlock {
 
     function getAutocompounderCount() public view returns (uint256) {
         uint256 _count = 0;
-        for(uint256 _i = 0; _i < holders.length; _i++) {
+        for (uint256 _i = 0; _i < holders.length; _i++) {
             if (isAutoCompounding[holders[_i]]) {
                 _count += 1;
             }
