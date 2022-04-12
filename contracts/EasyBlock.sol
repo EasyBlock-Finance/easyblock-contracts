@@ -686,43 +686,6 @@ contract EasyBlock {
     }
 
     // Reward related functions
-    function depositRewards(
-        uint32 _start,
-        uint32 _end,
-        uint256 _amount
-    ) external {
-        uint256 _addedRewards = 0;
-        // Fees
-        _amount = (_amount * (1000 - rewardFee)) / 1000;
-        // Reward per share
-        uint256 _rewardPerShare = _amount / totalShareCount;
-        for (uint32 _i = _start; _i < _end; _i++) {
-            address _currentHolder = holders[_i];
-            uint256 _userReward = _rewardPerShare * shareCount[_currentHolder];
-
-            claimableReward[_currentHolder] =
-                claimableReward[_currentHolder] +
-                _userReward;
-
-            _addedRewards += _userReward;
-        }
-        // Stats
-        totalRewardsDistributed += _addedRewards;
-        rewardAmountInside += _addedRewards;
-        // Transfer the rewards
-        IERC20(rewardToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _addedRewards
-        );
-        // Transfer the fee
-        IERC20(rewardToken).safeTransferFrom(
-            msg.sender,
-            feeCollector,
-            (_addedRewards / (1000 - rewardFee)) * rewardFee
-        );
-    }
-
     // TODO: Should there be a non autocompounding version?
     function distributeRewardsDirectly(
         uint32 _start,
@@ -781,22 +744,6 @@ contract EasyBlock {
         shareCount[_targetAddress] = shareCount[_targetAddress].add(
             _shareAmount
         );
-    }
-
-    // Shareholder Methods
-    function claimRewards() external {
-        require(isShareHolder[msg.sender], "msg.sender is not a shareholder.");
-        IERC20(rewardToken).safeTransfer(
-            msg.sender,
-            claimableReward[msg.sender]
-        );
-
-        // Stats
-        rewardAmountInside -= claimableReward[msg.sender];
-
-        emit RewardCollected(claimableReward[msg.sender], msg.sender);
-
-        claimableReward[msg.sender] = 0;
     }
 
     function getSharePrice() public view returns (uint256) {
@@ -899,7 +846,10 @@ contract EasyBlock {
     }
 
     // Address Discount
-    function setAddressDiscount(address _targetAddress, uint256 _amount) external onlyOwner {
+    function setAddressDiscount(address _targetAddress, uint256 _amount)
+        external
+        onlyOwner
+    {
         addressDiscount[_targetAddress] = _amount;
     }
 
