@@ -484,7 +484,6 @@ contract EasyBlock {
     mapping(address => uint256) public shareCount;
     mapping(address => uint256) public referFeeEarned;
     mapping(address => uint256) public referSaleCount;
-    mapping(address => uint256) public claimableReward;
     mapping(address => bool) public isShareHolder;
     mapping(address => bool) public isAutoCompounding;
     // General Info
@@ -492,7 +491,6 @@ contract EasyBlock {
     uint256 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
-    uint256 public rewardAmountInside;
     uint256 public totalReferalRewardDistributed;
     uint256 public totalInitialFeeCollected;
     // Manager Info
