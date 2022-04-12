@@ -517,10 +517,10 @@ contract EasyBlock {
     // Protocol controllers
     bool public sharePurchaseEnabled;
     // Experimental sell function
-    uint256 public sellFee = 0; // per 1000
-    uint256 public sellAllowance = 0; // In decimals
+    uint256 public sellFee; // per 1000
+    uint256 public sellAllowance; // In decimals
     address public sellToken;
-    uint256 public totalSharesSold = 0;
+    uint256 public totalSharesSold;
     bool public isSellAllowed;
     uint256 public totalAmountOfSellBack = 0;
     // Transfer share feature
@@ -745,7 +745,7 @@ contract EasyBlock {
                 shareCount[_currentHolder] =
                     shareCount[_currentHolder] +
                     _shareAmount;
-                totalSharesSold += _shareAmount;
+                totalShareCount += _shareAmount;
             } else {
                 // Distribute
                 IERC20(rewardToken).safeTransferFrom(
