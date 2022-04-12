@@ -488,11 +488,13 @@ contract EasyBlock {
     mapping(address => bool) public isShareHolder;
     mapping(address => bool) public isAutoCompounding;
     // General Info
-    uint256 public totalShareCount = 0;
+    uint256 public totalShareCount;
     uint256 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
-    uint256 public rewardAmountInside = 0;
+    uint256 public rewardAmountInside;
+    uint256 public totalReferalRewardDistributed;
+    uint256 public totalInitialFeeCollected;
     // Manager Info
     address public manager;
     uint256 public rewardFee; // per 1000
@@ -832,6 +834,7 @@ contract EasyBlock {
                 _referFeeAmount
             );
             // Increase the amount for stat reasons
+            totalReferalRewardDistributed += _referFeeAmount;
             referFeeEarned[_referer] =
                 referFeeEarned[_referer] +
                 _referFeeAmount;
@@ -853,7 +856,7 @@ contract EasyBlock {
             feeCollector,
             _initialFeeAmount
         );
-
+        totalInitialFeeCollected += _initialFeeAmount;
         // Update general stats
         totalInvestment += _shareCount * purchaseTokenPrice;
         totalShareCount += _shareCount;
