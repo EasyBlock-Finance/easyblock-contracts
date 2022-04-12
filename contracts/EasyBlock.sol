@@ -898,6 +898,11 @@ contract EasyBlock {
         return _count;
     }
 
+    // Address Discount
+    function setAddressDiscount(address _targetAddress, uint256 _amount) external onlyOwner {
+        addressDiscount[_targetAddress] = _amount;
+    }
+
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == manager);
