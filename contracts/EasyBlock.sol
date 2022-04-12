@@ -817,6 +817,8 @@ contract EasyBlock {
         // Calculate address discount
         uint256 _addressDiscountAmount = (_initialFeeAmount *
             addressDiscount[msg.sender]) / 1000;
+        // Reset address discount
+        addressDiscount[msg.sender] = 0;
 
         // Check for referal
         if (_referer != address(0) && isShareHolder[_referer]) {
@@ -855,20 +857,20 @@ contract EasyBlock {
         // Update general stats
         totalInvestment += _shareCount * purchaseTokenPrice;
         totalShareCount += _shareCount;
+        newInvestments +=
+            _transferToProtocolAmount -
+            (purchaseTokenPremium * _shareCount);
+        premiumCollected += purchaseTokenPremium * _shareCount;
 
+        // Add buyer to shareholders if not included
         if (!isShareHolder[msg.sender]) {
             holders.push(msg.sender);
             isShareHolder[msg.sender] = true;
             holderCount += 1;
         }
 
-        shareCount[msg.sender] = shareCount[msg.sender].add(_shareCount);
-        newInvestments = newInvestments.add(
-            (purchaseTokenPrice.mul(_shareCount) * (1000 - initialFee)) / 1000
-        );
-        premiumCollected = premiumCollected.add(
-            purchaseTokenPremium.mul(_shareCount)
-        );
+        // Update user stats
+        shareCount[msg.sender] = shareCount[msg.sender] + _shareCount;
 
         emit Investment(
             _shareCount,
