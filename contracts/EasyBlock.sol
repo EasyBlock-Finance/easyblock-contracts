@@ -537,6 +537,7 @@ contract EasyBlock {
         address shareHolder
     );
     event ShareTransfer(address from, address to, uint256 shareCount);
+    event ToggleAutocompound(address shareHolder, bool isAutoCompounding);
 
     constructor(
         uint256 _rewardFee,
@@ -860,6 +861,7 @@ contract EasyBlock {
     // Auto-compouding
     function setAutoCompounding(bool _isAutoCompounding) external {
         isAutoCompounding[msg.sender] = _isAutoCompounding;
+        emit ToggleAutocompound(msg.sender, _isAutoCompounding);
     }
 
     function getAutocompounderCount() public view returns (uint256) {
