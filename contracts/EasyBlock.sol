@@ -711,7 +711,6 @@ contract EasyBlock {
             address _currentHolder = holders[_i];
             uint256 _shareCount = shareCount[_currentHolder];
             uint256 _rewardToBeDistributed = _rewardPerShare * _shareCount;
-            totalRewardsDistributed += _rewardToBeDistributed;
 
             // Check for auto-compounding
             if (isAutoCompounding[_currentHolder]) {
@@ -729,6 +728,13 @@ contract EasyBlock {
                 );
             }
         }
+    }
+
+    function increaseTotalRewardDistributed(uint256 _amount)
+        external
+        onlyOwner
+    {
+        totalRewardsDistributed += _amount;
     }
 
     // Transfer feature
