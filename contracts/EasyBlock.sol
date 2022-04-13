@@ -541,7 +541,9 @@ contract EasyBlock {
         uint256 _initialFee,
         uint256 _referFee,
         uint256 _totalInvestment,
-        uint256 _totalRewards
+        uint256 _totalRewards,
+        address _tokenAddress,
+        uint256 _purchaseTokenPrice
     ) {
         manager = msg.sender;
         feeCollector = msg.sender;
@@ -552,6 +554,11 @@ contract EasyBlock {
 
         totalInvestment = _totalInvestment;
         totalRewardsDistributed = _totalRewards;
+
+        purchaseToken = _tokenAddress;
+        sellToken = _tokenAddress;
+        rewardToken = _tokenAddress;
+        purchaseTokenPrice = _purchaseTokenPrice;
     }
 
     // Experimental sell functions
@@ -603,7 +610,7 @@ contract EasyBlock {
 
     function getMaxAmountOfSharesToBeSold() external view returns (uint256) {
         uint256 _sellPricePercentage = 1000 - sellFee;
-        uint256 _sellPrice = purchaseTokenPrice * _sellPricePercentage / 1000;
+        uint256 _sellPrice = (purchaseTokenPrice * _sellPricePercentage) / 1000;
         uint256 _maxAmount = sellAllowance / _sellPrice;
         return _maxAmount;
     }
