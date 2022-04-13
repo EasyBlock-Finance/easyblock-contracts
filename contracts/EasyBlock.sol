@@ -779,7 +779,7 @@ contract EasyBlock {
         uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
 
         // Calculate address discount
-        uint256 _addressDiscountAmount;
+        uint256 _addressDiscountAmount = 0;
         if (addressDiscount[msg.sender] != 0) {
             _addressDiscountAmount =
                 (_initialFeeAmount * addressDiscount[msg.sender]) /
