@@ -476,7 +476,6 @@ library SafeERC20 {
 // LIBRARIES END
 
 contract EasyBlock {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // Shareholder Info
@@ -591,7 +590,7 @@ contract EasyBlock {
         uint256 _sellAmount = _shareAmount * getSellPrice();
         require(_sellAmount <= sellAllowance, "Not enough allowance to sell");
 
-        shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
+        shareCount[msg.sender] = shareCount[msg.sender] - _shareAmount;
 
         totalSharesSold += _shareAmount;
         totalAmountOfSellBack += _sellAmount;
@@ -605,10 +604,8 @@ contract EasyBlock {
 
     function getMaxAmountOfSharesToBeSold() external view returns (uint256) {
         uint256 _sellPricePercentage = 1000 - sellFee;
-        uint256 _sellPrice = purchaseTokenPrice.mul(_sellPricePercentage).div(
-            1000
-        );
-        uint256 _maxAmount = sellAllowance.div(_sellPrice);
+        uint256 _sellPrice = purchaseTokenPrice * _sellPricePercentage / 1000;
+        uint256 _maxAmount = sellAllowance / _sellPrice;
         return _maxAmount;
     }
 
@@ -747,10 +744,8 @@ contract EasyBlock {
             isShareHolder[_targetAddress] = true;
             holderCount += 1;
         }
-        shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
-        shareCount[_targetAddress] = shareCount[_targetAddress].add(
-            _shareAmount
-        );
+        shareCount[msg.sender] = shareCount[msg.sender] - _shareAmount;
+        shareCount[_targetAddress] = shareCount[_targetAddress] + _shareAmount;
     }
 
     function getSharePrice() public view returns (uint256) {
@@ -840,7 +835,7 @@ contract EasyBlock {
 
         emit Investment(
             _shareCount,
-            purchaseTokenPrice.mul(_shareCount),
+            purchaseTokenPrice * _shareCount,
             msg.sender
         );
     }
