@@ -488,6 +488,7 @@ contract EasyBlock {
     mapping(address => bool) public isAutoCompounding;
     // General Info
     uint256 public totalShareCount;
+    uint256 public totalShareCountAutoCompounding;
     uint256 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
@@ -684,14 +685,22 @@ contract EasyBlock {
     }
 
     // Reward related functions
-    // TODO: Should there be a non autocompounding version?
+    function startDistribution() external onlyOwner {
+        sharePurchaseEnabled = false;
+        totalShareCountAutoCompounding = totalShareCount;
+    }
+
+    function endDistribution() external onlyOwner {
+        sharePurchaseEnabled = true;
+        totalShareCount = totalShareCountAutoCompounding;
+    }
+
     function distributeRewardsDirectly(
         uint32 _start,
         uint32 _end,
         uint256 _rewardAmount
     ) external onlyOwner {
         uint256 _sharePrice = getSharePrice();
-        // Reward per share
         uint256 _rewardPerShare = _rewardAmount / totalShareCount;
 
         for (uint32 _i = _start; _i < _end; _i++) {
@@ -707,7 +716,7 @@ contract EasyBlock {
                 shareCount[_currentHolder] =
                     shareCount[_currentHolder] +
                     _shareAmount;
-                totalShareCount += _shareAmount;
+                totalShareCountAutoCompounding += _shareAmount; // Updating a tmp variable so that the newly bought shares won't decrease the rewards of others
             } else {
                 // Distribute
                 IERC20(rewardToken).safeTransferFrom(
