@@ -763,13 +763,21 @@ contract EasyBlock {
         uint256 _transferToProtocolAmount = _totalAmount - _initialFeeAmount;
 
         // Calculate address discount
-        uint256 _addressDiscountAmount = (_initialFeeAmount *
-            addressDiscount[msg.sender]) / 1000;
-        // Reset address discount
-        addressDiscount[msg.sender] = 0;
+        uint256 _addressDiscountAmount;
+        if (addressDiscount[msg.sender] != 0) {
+            _addressDiscountAmount =
+                (_initialFeeAmount * addressDiscount[msg.sender]) /
+                1000;
+            // Reset address discount
+            addressDiscount[msg.sender] = 0;
+        }
 
         // Check for referal
-        if (_referer != address(0) && isShareHolder[_referer]) {
+        if (
+            _referer != address(0) && // Check if referer exsists
+            _referer != msg.sender && // Check if referer is not the same as the sender
+            isShareHolder[_referer] // Check if referer is an existing share holder
+        ) {
             // Referer should be a shareholder
             uint256 _referFeeAmount = (_initialFeeAmount * referFee) / 1000;
             _initialFeeAmount -= _referFeeAmount;
@@ -802,8 +810,8 @@ contract EasyBlock {
             feeCollector,
             _initialFeeAmount
         );
-        totalInitialFeeCollected += _initialFeeAmount;
         // Update general stats
+        totalInitialFeeCollected += _initialFeeAmount;
         totalInvestment += _shareCount * purchaseTokenPrice;
         totalShareCount += _shareCount;
         newInvestments +=
