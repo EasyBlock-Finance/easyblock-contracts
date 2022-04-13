@@ -536,6 +536,7 @@ contract EasyBlock {
         uint256 amountInTotal,
         address shareHolder
     );
+    event ShareTransfer(address from, address to, uint256 shareCount);
 
     constructor(
         uint256 _rewardFee,
@@ -759,6 +760,8 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender] - _shareAmount;
         shareCount[_targetAddress] = shareCount[_targetAddress] + _shareAmount;
+
+        emit ShareTransfer(msg.sender, _targetAddress, _shareAmount);
     }
 
     function getSharePrice() public view returns (uint256) {
@@ -788,7 +791,7 @@ contract EasyBlock {
             // Reset address discount
             addressDiscount[msg.sender] = 0;
         }
-        uint256 _discountAmount = _initialFeeAmount * discount / 1000;
+        uint256 _discountAmount = (_initialFeeAmount * discount) / 1000;
 
         // Check for referral
         if (
