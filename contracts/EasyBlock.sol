@@ -499,6 +499,7 @@ contract EasyBlock {
     uint256 public initialFee; // per 1000
     uint256 public referFee; // per 1000 of the initial fee
     mapping(address => uint256) public addressDiscount; // per 1000 of the initial fee
+    uint256 public discount; // per 1000 of the initial fee
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -787,6 +788,7 @@ contract EasyBlock {
             // Reset address discount
             addressDiscount[msg.sender] = 0;
         }
+        uint256 _discountAmount = _initialFeeAmount * discount / 1000;
 
         // Check for referral
         if (
@@ -812,7 +814,7 @@ contract EasyBlock {
         }
 
         // Deduce address discount
-        _initialFeeAmount -= _addressDiscountAmount;
+        _initialFeeAmount -= (_addressDiscountAmount + _discountAmount);
 
         // Transfer to protocol
         IERC20(purchaseToken).safeTransferFrom(
@@ -873,6 +875,11 @@ contract EasyBlock {
         onlyOwner
     {
         addressDiscount[_targetAddress] = _amount;
+    }
+
+    // Set Discount
+    function setDiscount(uint256 _amount) external onlyOwner {
+        discount = _amount;
     }
 
     // Modifiers
