@@ -482,13 +482,13 @@ contract EasyBlock {
     address[] public holders;
     mapping(address => uint256) public shareCount;
     mapping(address => uint256) public referFeeEarned;
-    mapping(address => uint256) public referSaleCount;
+    mapping(address => uint32) public referSaleCount;
     mapping(address => bool) public isShareHolder;
     mapping(address => bool) public isAutoCompounding;
     // General Info
     uint256 public totalShareCount;
     uint256 public totalShareCountAutoCompounding;
-    uint256 public holderCount;
+    uint32 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
     uint256 public totalReferalRewardDistributed;
@@ -505,13 +505,13 @@ contract EasyBlock {
     // Purchase Tokens
     address public purchaseToken;
     uint256 public purchaseTokenPrice; // In decimals
-    uint256 public newInvestments = 0;
+    uint256 public newInvestments;
     uint256 public purchaseTokenPremium;
-    uint256 public premiumCollected = 0;
+    uint256 public premiumCollected;
     // StrongBlock Node Holders
     address[] public nodeHolders;
-    uint256 public nodeHoldersCount;
-    uint256 public nodeCount;
+    uint8 public nodeHoldersCount;
+    uint16 public nodeCount;
     // Protocol controllers
     bool public sharePurchaseEnabled;
     // Experimental sell function
@@ -520,7 +520,7 @@ contract EasyBlock {
     address public sellToken;
     uint256 public totalSharesSold;
     bool public isSellAllowed;
-    uint256 public totalAmountOfSellBack = 0;
+    uint256 public totalAmountOfSellBack;
     // Transfer share feature
     bool public isTransferEnabled;
 
@@ -530,7 +530,6 @@ contract EasyBlock {
         uint256 investmentInUSD,
         address shareHolder
     );
-    event RewardCollected(uint256 amount, address shareHolder);
     event ShareSold(
         uint256 shareCount,
         uint256 amountInTotal,
@@ -638,7 +637,7 @@ contract EasyBlock {
         nodeHoldersCount += 1;
     }
 
-    function setNodeCount(uint256 _count) external onlyOwner {
+    function setNodeCount(uint16 _count) external onlyOwner {
         nodeCount = _count;
     }
 
