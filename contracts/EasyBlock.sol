@@ -491,7 +491,7 @@ contract EasyBlock {
     uint32 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
-    uint256 public totalReferalRewardDistributed;
+    uint256 public totalReferralRewardDistributed;
     uint256 public totalInitialFeeCollected;
     // Manager Info
     address public manager;
@@ -788,7 +788,7 @@ contract EasyBlock {
             addressDiscount[msg.sender] = 0;
         }
 
-        // Check for referal
+        // Check for referral
         if (
             _referer != address(0) && // Check if referer exsists
             _referer != msg.sender && // Check if referer is not the same as the sender
@@ -804,7 +804,7 @@ contract EasyBlock {
                 _referFeeAmount
             );
             // Increase the amount for stat reasons
-            totalReferalRewardDistributed += _referFeeAmount;
+            totalReferralRewardDistributed += _referFeeAmount;
             referFeeEarned[_referer] =
                 referFeeEarned[_referer] +
                 _referFeeAmount;
