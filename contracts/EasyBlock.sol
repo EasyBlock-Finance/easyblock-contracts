@@ -740,6 +740,10 @@ contract EasyBlock {
         totalRewardsDistributed += _amount;
     }
 
+    function increaseTotalInvestment(uint256 _amount) external onlyOwner {
+        totalInvestment += _amount;
+    }
+
     // Transfer feature
     function toggleTransferEnabled(bool _isTransferEnabled) external onlyOwner {
         isTransferEnabled = _isTransferEnabled;
@@ -834,7 +838,7 @@ contract EasyBlock {
         );
         // Update general stats
         totalInitialFeeCollected += _initialFeeAmount;
-        totalInvestment += _shareCount * purchaseTokenPrice;
+        totalInvestment += _transferToProtocolAmount;
         totalShareCount += _shareCount;
         newInvestments +=
             _transferToProtocolAmount -
