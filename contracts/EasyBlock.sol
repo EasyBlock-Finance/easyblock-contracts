@@ -706,6 +706,7 @@ contract EasyBlock {
         uint32 _end,
         uint256 _rewardAmount
     ) external onlyOwner {
+        require(!sharePurchaseEnabled, "Distribution is not allowed");
         uint256 _sharePrice = getSharePrice();
         uint256 _rewardPerShare = _rewardAmount / totalShareCount;
 
