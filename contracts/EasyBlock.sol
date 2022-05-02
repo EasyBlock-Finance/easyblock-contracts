@@ -516,7 +516,8 @@ contract EasyBlock {
     // Protocol controllers
     bool public sharePurchaseEnabled;
     // Experimental sell function
-    uint256 public sellFee; // per 1000
+    uint256 public sellFeeDeveloper; // per 1000
+    uint256 public sellFeeCommunity; // per 1000
     uint256 public sellAllowance; // In decimals
     address public sellToken;
     uint256 public totalSharesSold;
@@ -578,8 +579,12 @@ contract EasyBlock {
         sellAllowance = _allowance;
     }
 
-    function setSellFee(uint256 _fee) external onlyOwner {
-        sellFee = _fee;
+    function setSellFeeDeveloper(uint256 _fee) external onlyOwner {
+        sellFeeDeveloper = _fee;
+    }
+
+    function setSellFeeCommunity(uint256 _fee) external onlyOwner {
+        sellFeeCommunity = _fee;
     }
 
     function toggleIsSellAllowed(bool _isSellAllowed) external onlyOwner {
@@ -587,7 +592,7 @@ contract EasyBlock {
     }
 
     function getSellPrice() public view returns (uint256) {
-        return (purchaseTokenPrice * (1000 - sellFee)) / 1000;
+        return (purchaseTokenPrice * (1000 - (sellFeeDeveloper + sellFeeCommunity))) / 1000;
     }
 
     function sellBackShares(uint256 _shareAmount) external {
@@ -612,7 +617,7 @@ contract EasyBlock {
     }
 
     function getMaxAmountOfSharesToBeSold() external view returns (uint256) {
-        uint256 _sellPricePercentage = 1000 - sellFee;
+        uint256 _sellPricePercentage = 1000 - (sellFeeDeveloper + sellFeeCommunity);
         uint256 _sellPrice = (purchaseTokenPrice * _sellPricePercentage) / 1000;
         uint256 _maxAmount = sellAllowance / _sellPrice;
         return _maxAmount;
