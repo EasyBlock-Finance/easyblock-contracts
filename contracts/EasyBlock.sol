@@ -509,6 +509,7 @@ contract EasyBlock {
     uint256 public newInvestments;
     uint256 public purchaseTokenPremium;
     uint256 public premiumCollected;
+    uint256 public premiumCollectedSellShare;
     // StrongBlock Node Holders
     address[] public nodeHolders;
     uint8 public nodeHoldersCount;
@@ -518,7 +519,6 @@ contract EasyBlock {
     // Experimental sell function
     uint256 public sellFeeDeveloper; // per 1000
     uint256 public sellFeeCommunity; // per 1000
-    uint256 public sellAllowance; // In decimals
     address public sellToken;
     uint256 public totalSharesSold;
     bool public isSellAllowed;
@@ -570,15 +570,6 @@ contract EasyBlock {
         sellToken = _sellToken;
     }
 
-    function setSellAllowance(uint256 _allowance) external onlyOwner {
-        if (_allowance > sellAllowance) {
-            newInvestments -= (_allowance - sellAllowance);
-        } else {
-            newInvestments += (sellAllowance - _allowance);
-        }
-        sellAllowance = _allowance;
-    }
-
     function setSellFeeDeveloper(uint256 _fee) external onlyOwner {
         sellFeeDeveloper = _fee;
     }
@@ -592,7 +583,14 @@ contract EasyBlock {
     }
 
     function getSellPrice() public view returns (uint256) {
-        return (purchaseTokenPrice * (1000 - (sellFeeDeveloper + sellFeeCommunity))) / 1000;
+        return
+            (purchaseTokenPrice *
+                (1000 - (sellFeeDeveloper + sellFeeCommunity))) / 1000;
+    }
+
+    function getMaxAmountOfSharesToBeSold() public view returns (uint256) {
+        uint256 _maxAmount = newInvestments / purchaseTokenPrice;
+        return _maxAmount;
     }
 
     function sellBackShares(uint256 _shareAmount) external {
@@ -601,26 +599,34 @@ contract EasyBlock {
             _shareAmount <= shareCount[msg.sender],
             "Not enough shares to sell"
         );
+        require(
+            _shareAmount <= getMaxAmountOfSharesToBeSold(),
+            "Not enough shares to sell in treasury."
+        );
         uint256 _sellAmount = _shareAmount * getSellPrice();
-        require(_sellAmount <= sellAllowance, "Not enough allowance to sell");
 
         shareCount[msg.sender] = shareCount[msg.sender] - _shareAmount;
 
         totalSharesSold += _shareAmount;
         totalAmountOfSellBack += _sellAmount;
         totalShareCount -= _shareAmount;
-        sellAllowance -= _sellAmount;
 
+        // Send developer their money
+        IERC20(sellToken).safeTransfer(
+            feeCollector,
+            (_shareAmount * purchaseTokenPrice * sellFeeDeveloper) / 1000
+        );
+        // Send seller their money
         IERC20(sellToken).safeTransfer(msg.sender, _sellAmount);
+        // Increase reward pool
+        uint256 _communityFee = (_shareAmount *
+            purchaseTokenPrice *
+            sellFeeCommunity) / 1000;
+        premiumCollectedSellShare += _communityFee;
+        // Decrease new investments
+        newInvestments -= _communityFee;
 
         emit ShareSold(_shareAmount, _sellAmount, msg.sender);
-    }
-
-    function getMaxAmountOfSharesToBeSold() external view returns (uint256) {
-        uint256 _sellPricePercentage = 1000 - (sellFeeDeveloper + sellFeeCommunity);
-        uint256 _sellPrice = (purchaseTokenPrice * _sellPricePercentage) / 1000;
-        uint256 _maxAmount = sellAllowance / _sellPrice;
-        return _maxAmount;
     }
 
     // Controller toggles
@@ -678,14 +684,23 @@ contract EasyBlock {
     }
 
     // Withdrawals
-    function withdrawToManager() external onlyOwner {
-        IERC20(purchaseToken).safeTransfer(manager, newInvestments);
-        newInvestments = 0;
+    function withdrawToManager(uint256 _amount) external onlyOwner {
+        require(
+            _amount <= newInvestments,
+            "Not enough new investments to withdraw."
+        );
+        IERC20(purchaseToken).safeTransfer(manager, _amount);
+        newInvestments -= _amount;
     }
 
     function withdrawPremiumToManager() external onlyOwner {
         IERC20(purchaseToken).safeTransfer(manager, premiumCollected);
         premiumCollected = 0;
+    }
+
+    function withdrawPremiumSellToManager() external onlyOwner {
+        IERC20(purchaseToken).safeTransfer(manager, premiumCollectedSellShare);
+        premiumCollectedSellShare = 0;
     }
 
     function emergencyWithdrawal(address _token, uint256 _amount)
