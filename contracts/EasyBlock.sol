@@ -475,6 +475,13 @@ library SafeERC20 {
 
 // LIBRARIES END
 
+// PREVIOUS EASYBLOCK CONTRACT INTERFACE
+interface Easyblock {
+    function holders(uint256 _index) external view returns (address);
+
+    function shareCount(address _address) external view returns (uint256);
+}
+
 contract EasyBlock {
     using SafeERC20 for IERC20;
 
@@ -525,6 +532,10 @@ contract EasyBlock {
     uint256 public totalAmountOfSellBack;
     // Transfer share feature
     bool public isTransferEnabled;
+    // Migration
+    bool public isMigrating = true;
+    address public previousContract;
+    Easyblock easyContract;
 
     /* ======== EVENTS ======== */
     event Investment(
@@ -547,7 +558,8 @@ contract EasyBlock {
         uint256 _totalInvestment,
         uint256 _totalRewards,
         address _tokenAddress,
-        uint256 _purchaseTokenPrice
+        uint256 _purchaseTokenPrice,
+        address _previousContract
     ) {
         manager = msg.sender;
         feeCollector = msg.sender;
@@ -563,6 +575,10 @@ contract EasyBlock {
         sellToken = _tokenAddress;
         rewardToken = _tokenAddress;
         purchaseTokenPrice = _purchaseTokenPrice;
+
+        // Migration
+        previousContract = _previousContract;
+        easyContract = Easyblock(previousContract);
     }
 
     // Experimental sell functions
@@ -911,6 +927,43 @@ contract EasyBlock {
     function setDiscount(uint256 _amount) external onlyOwner {
         discount = _amount;
     }
+
+    // MIGRATION START
+    function endMigartion() external onlyOwner {
+        isMigrating = false;
+    }
+
+    function addHolder(address _holder, uint256 _shareCount) internal {
+        holders.push(_holder);
+        isShareHolder[_holder] = true;
+        holderCount += 1;
+
+        shareCount[_holder] = _shareCount;
+    }
+
+    function copyFromPrevious(
+        uint16 _start,
+        uint16 _end,
+        uint256 _decimals
+    ) external onlyOwner {
+        require(isMigrating, "Migration is not in progress.");
+        uint256 _additionToTotalShareCount = 0;
+
+        for (uint16 _i = _start; _i < _end; _i++) {
+            // Calculate the reward
+            address _currentHolder = easyContract.holders(_i);
+            uint256 _shareCount = easyContract.shareCount(_currentHolder) *
+                _decimals;
+
+            addHolder(_currentHolder, _shareCount);
+
+            _additionToTotalShareCount += _shareCount;
+        }
+
+        totalShareCount += _additionToTotalShareCount;
+    }
+
+    // MIGRATION END
 
     // Modifiers
     modifier onlyOwner() {
