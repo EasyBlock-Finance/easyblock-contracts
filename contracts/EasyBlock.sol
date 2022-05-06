@@ -621,11 +621,9 @@ contract EasyBlock {
         );
         uint256 _sellAmount = _shareAmount * getSellPrice();
 
+        // STATE MANIPULATIONS PRE
         shareCount[msg.sender] = shareCount[msg.sender] - _shareAmount;
-
         totalSharesSold += _shareAmount;
-        totalAmountOfSellBack += _sellAmount;
-        totalShareCount -= _shareAmount;
 
         // Send developer their money
         IERC20(sellToken).safeTransfer(
@@ -634,13 +632,17 @@ contract EasyBlock {
         );
         // Send seller their money
         IERC20(sellToken).safeTransfer(msg.sender, _sellAmount);
+
+        // STATE MANIPULATIONS POST
+        totalAmountOfSellBack += _sellAmount;
+        totalShareCount -= _shareAmount;
         // Increase reward pool
         uint256 _communityFee = (_shareAmount *
             purchaseTokenPrice *
             sellFeeCommunity) / 1000;
         premiumCollectedSellShare += _communityFee;
         // Decrease new investments
-        newInvestments -= _communityFee;
+        newInvestments -= _communityFee;        
 
         emit ShareSold(_shareAmount, _sellAmount, msg.sender);
     }
