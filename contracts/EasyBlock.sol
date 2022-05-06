@@ -642,7 +642,7 @@ contract EasyBlock {
             sellFeeCommunity) / 1000;
         premiumCollectedSellShare += _communityFee;
         // Decrease new investments
-        newInvestments -= _communityFee;        
+        newInvestments -= _shareAmount * purchaseTokenPrice;        
 
         emit ShareSold(_shareAmount, _sellAmount, msg.sender);
     }
