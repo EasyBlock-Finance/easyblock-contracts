@@ -938,9 +938,8 @@ contract EasyBlock {
     function addHolder(address _holder, uint256 _shareCount) internal {
         holders.push(_holder);
         isShareHolder[_holder] = true;
-        holderCount += 1;
-
         shareCount[_holder] = _shareCount;
+        holderCount += 1;        
     }
 
     function copyFromPrevious(
@@ -952,7 +951,7 @@ contract EasyBlock {
         uint256 _additionToTotalShareCount = 0;
 
         for (uint16 _i = _start; _i < _end; _i++) {
-            // Calculate the reward
+            // Calculate share count
             address _currentHolder = easyContract.holders(_i);
             uint256 _shareCount = easyContract.shareCount(_currentHolder) *
                 _decimals;
