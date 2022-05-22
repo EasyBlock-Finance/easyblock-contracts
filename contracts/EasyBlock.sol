@@ -502,6 +502,7 @@ contract EasyBlock {
     uint256 public totalInitialFeeCollected;
     // Manager Info
     address public manager;
+    address[] public accessWallets;
     uint256 public rewardFee; // per 1000
     uint256 public initialFee; // per 1000
     uint256 public referFee; // per 1000 of the initial fee
@@ -969,6 +970,31 @@ contract EasyBlock {
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == manager);
+        _;
+    }
+    // Access to share count modifier
+    function addAccess(address _address) external onlyOwner {
+        accessWallets.push(_address);
+    }
+
+    function removeAccess(address _address) external onlyOwner {
+        for (uint256 i; i < accessWallets.length; i++) {
+            if (_address == accessWallets[i]) {
+                delete accessWallets[i];
+                break;
+            }
+        }
+    }
+
+    modifier hasAccess() {
+        bool _hasAccess = false;
+        for (uint256 i; i < accessWallets.length; i++) {
+            if (msg.sender == accessWallets[i]) {
+                _hasAccess = true;
+                break;
+            }
+        }
+        require(_hasAccess);
         _;
     }
 }
