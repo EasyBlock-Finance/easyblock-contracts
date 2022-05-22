@@ -967,6 +967,20 @@ contract EasyBlock {
 
     // MIGRATION END
 
+    // NFT RELATED START
+    function decreaseShareCount(address _target, uint256 _amount) external hasAccess {
+        require(
+            isShareHolder[_target],
+            "Target is not a shareholder."
+        );
+        require(
+            shareCount[_target] >= _amount,
+            "Not enough shares."
+        );
+        shareCount[_target] = shareCount[_target] - _amount;
+    }
+    // NFT RELATED END
+
     // Modifiers
     modifier onlyOwner() {
         require(msg.sender == manager);
