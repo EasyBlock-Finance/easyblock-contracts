@@ -143,3 +143,5 @@ artifacts
 hardhat.config.js
 
 .DS_Store
+
+scripts/output/shareHolders.csv
