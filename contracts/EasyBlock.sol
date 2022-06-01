@@ -495,6 +495,7 @@ contract EasyBlock {
     // General Info
     uint256 public totalShareCount;
     uint256 public totalShareCountAutoCompounding;
+    uint256 public sharesInNFTs;
     uint32 public holderCount;
     uint256 public totalInvestment;
     uint256 public totalRewardsDistributed;
@@ -643,7 +644,7 @@ contract EasyBlock {
             sellFeeCommunity) / 1000;
         premiumCollectedSellShare += _communityFee;
         // Decrease new investments
-        newInvestments -= _shareAmount * purchaseTokenPrice;        
+        newInvestments -= _shareAmount * purchaseTokenPrice;
 
         emit ShareSold(_shareAmount, _sellAmount, msg.sender);
     }
@@ -940,7 +941,7 @@ contract EasyBlock {
         holders.push(_holder);
         isShareHolder[_holder] = true;
         shareCount[_holder] = _shareCount;
-        holderCount += 1;        
+        holderCount += 1;
     }
 
     function copyFromPrevious(
@@ -968,17 +969,16 @@ contract EasyBlock {
     // MIGRATION END
 
     // NFT RELATED START
-    function decreaseShareCount(address _target, uint256 _amount) external hasAccess {
-        require(
-            isShareHolder[_target],
-            "Target is not a shareholder."
-        );
-        require(
-            shareCount[_target] >= _amount,
-            "Not enough shares."
-        );
+    function decreaseShareCount(address _target, uint256 _amount)
+        external
+        hasAccess
+    {
+        require(isShareHolder[_target], "Target is not a shareholder.");
+        require(shareCount[_target] >= _amount, "Not enough shares.");
         shareCount[_target] = shareCount[_target] - _amount;
+        sharesInNFTs += _amount;
     }
+
     // NFT RELATED END
 
     // Modifiers
@@ -986,6 +986,7 @@ contract EasyBlock {
         require(msg.sender == manager);
         _;
     }
+
     // Access to share count modifier
     function addAccess(address _address) external onlyOwner {
         accessWallets.push(_address);
