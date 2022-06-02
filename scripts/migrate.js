@@ -19,15 +19,15 @@ async function main() {
     const easyblockContract = await hre.ethers.getContractAt(EASYBLOCK.abi, EASYBLOCK.address);
 
     async function migrate() {
-        const SHARE_HOLDER_COUNT = 2104;
+        const SHARE_HOLDER_COUNT = 2109;
         console.log("Holders: ", SHARE_HOLDER_COUNT);
-        let start = 0;
+        let start = 50;
         let end = start + INCREMENT;
 
         // Migrate
         while(start < SHARE_HOLDER_COUNT) {
             console.log("Migrating: ", start, " -> ", end);
-            await easyblockContract.copyFromPrevious(start, end, 100)
+            await easyblockContract.copyFromPrevious(start, end, 1)
             console.log("Migrated: ", start, " -> ", end);
 
             start += INCREMENT;

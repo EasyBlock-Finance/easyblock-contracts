@@ -1,5 +1,12 @@
 // SPDX-License-Identifier: MIT
 
+//    //   / /                                 //   ) )
+//   //____     ___      ___                  //___/ /  //  ___      ___     / ___
+//  / ____    //   ) ) ((   ) ) //   / /     / __  (   // //   ) ) //   ) ) //\ \
+// //        //   / /   \ \    ((___/ /     //    ) ) // //   / / //       //  \ \
+////____/ / ((___( ( //   ) )      / /     //____/ / // ((___/ / ((____   //    \ \
+// Developed by Dogu Deniz UGUR (https://github.com/DoguD)
+
 pragma solidity ^0.8.0;
 
 // LIBRARIES START
