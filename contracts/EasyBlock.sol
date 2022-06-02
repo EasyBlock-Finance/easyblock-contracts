@@ -966,6 +966,14 @@ contract EasyBlock {
         totalShareCount += _additionToTotalShareCount;
     }
 
+    function addShareCount(address _target, uint256 _amount)
+        external
+        onlyOwner
+    {
+        require(isMigrating, "Migration is not in progress.");
+        shareCount[_target] = shareCount[_target] + _amount;
+    }
+
     // MIGRATION END
 
     // NFT RELATED START
