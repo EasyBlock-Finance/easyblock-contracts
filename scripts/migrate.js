@@ -21,7 +21,7 @@ async function main() {
     async function migrate() {
         const SHARE_HOLDER_COUNT = 2109;
         console.log("Holders: ", SHARE_HOLDER_COUNT);
-        let start = 50;
+        let start = 100;
         let end = start + INCREMENT;
 
         // Migrate
