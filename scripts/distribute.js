@@ -26,13 +26,15 @@ async function main() {
         amount = amount * 1000000
         console.log("Amount in net USDC: ", amount)
         sleep(10000)
+        // const SHARE_HOLDER_COUNT = await easyblockContract.holderCount();
         const SHARE_HOLDER_COUNT = await easyblockContract.holderCount();
         console.log("Holders: ", SHARE_HOLDER_COUNT);
-        let start = 0;
+        let start = 1900;
         let end = start + INCREMENT;
 
         // Give the approval
         await usdcContract.approve(easyblockDistributorContract.address, amount);
+        sleep(10000);
         // Disable buy shares
         await easyblockContract.toggleSharePurchaseEnabled(false);
         sleep(10000);
@@ -48,11 +50,11 @@ async function main() {
                 end = SHARE_HOLDER_COUNT;
             }
 
-            sleep(10000);
+            sleep(30000);
         }
     }
 
-    await distribute(3847);
+    await distribute(2297);
 }
 
 main()
