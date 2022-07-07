@@ -10,7 +10,6 @@
 pragma solidity ^0.8.0;
 
 abstract contract Context {
-
     function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
@@ -18,14 +17,15 @@ abstract contract Context {
     function _msgData() internal view virtual returns (bytes calldata) {
         return msg.data;
     }
-
 }
 
 abstract contract Ownable is Context {
-
     address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     constructor() {
         _setOwner(_msgSender());
@@ -45,7 +45,10 @@ abstract contract Ownable is Context {
     }
 
     function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         _setOwner(newOwner);
     }
 
@@ -56,24 +59,84 @@ abstract contract Ownable is Context {
     }
 }
 
+// NFT Contract Interface
+interface EasyBlock {
+    function shareCount(address _address) external view returns (uint256);
+}
+
+interface EasyAvatars {
+    function balanceOf(address owner) external view returns (uint256);
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    function tokenOfOwnerByIndex(address owner, uint256 index)
+        external
+        view
+        returns (uint256);
+
+    function tokenIncludesShare(uint256 tokenId) external view returns (bool);
+}
+
 contract DiscountedSale is Ownable {
     uint256 public price = 20 ether;
+    EasyAvatars easyAvatars =
+        EasyAvatars(0x5d6f546f2357E84720371A0510f64DBC3FbACe33);
+    EasyBlock easyBlock;
 
     function setPrice(uint256 newPrice) public onlyOwner {
         price = newPrice;
     }
 
-    function mint(address destination, uint256 amountOfTokens) private {
-        // require(totalSupply() < maxSupply, "All tokens have been minted");
-        // require(totalSupply() + amountOfTokens <= maxSupply, "Minting would exceed max supply");
+    function setEasyBlockContract(address target) public onlyOwner {
+        easyBlock = EasyBlock(target);
+    }
 
-        // require(amountOfTokens <= maxMint, "Cannot purchase this many tokens in a transaction");
-        // require(amountOfTokens > 0, "Must mint at least one token");
+    function isEligible(address buyerAddress)
+        public
+        view
+        returns (bool)
+    {
+        if (easyBlock.shareCount(buyerAddress) > 0) {
+            return true;
+        }
+
+        for (uint256 i = 0; i < easyAvatars.balanceOf(buyerAddress); i++) {
+            if (
+                easyAvatars.tokenIncludesShare(
+                    easyAvatars.tokenOfOwnerByIndex(buyerAddress, i)
+                )
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function mint(address destination, uint256 amountOfTokens) private {
+        require(amountOfTokens > 0, "Must mint at least one token");
         require(price * amountOfTokens == msg.value, "ETH amount is incorrect");
+        require(
+            easyAvatars.balanceOf(address(this)) >= amountOfTokens,
+            "Not enough balance"
+        );
+        require(isEligible(destination), "You are not eligible to buy tokens");
+
+        for (uint256 i = 0; i < amountOfTokens; i++) {
+            easyAvatars.safeTransferFrom(
+                address(this),
+                destination,
+                easyAvatars.tokenOfOwnerByIndex(address(this), i)
+            );
+        }
     }
 
     function mintForSelf(uint256 amountOfTokens) public payable virtual {
-        mint(_msgSender(),amountOfTokens);
+        mint(_msgSender(), amountOfTokens);
     }
 
     function withdrawAll() public payable onlyOwner {
