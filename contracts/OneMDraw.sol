@@ -50,7 +50,7 @@ contract RandomNumberDraw {
                         msg.sender
                     )
                 )
-            ) % maxNumber + minNumber;
+            ) % (maxNumber - minNumber) + minNumber;
     }
 
     function roll(uint256 minNumber, uint256 maxNumber) public onlyOwner {
