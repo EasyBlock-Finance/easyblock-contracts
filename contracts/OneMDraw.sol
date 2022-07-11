@@ -35,7 +35,7 @@ contract RandomNumberDraw {
         canCallRandom = true;
     }
 
-    function random(uint256 maxNumber) public view returns (uint256) {
+    function random(uint256 minNumber, uint256 maxNumber) public view returns (uint256) {
         /**
         Generates a random number between 0 and maxNumber. Uses current block difficulty, timestamp, caller address, and the blockhash of the block when prepareRandom has been called.
         Although the output of this function can be precalculated, the manager not knowing the blockhash of the block they called "prepareRandom" makes the system fair.
@@ -50,16 +50,16 @@ contract RandomNumberDraw {
                         msg.sender
                     )
                 )
-            ) % maxNumber;
+            ) % maxNumber + minNumber;
     }
 
-    function roll(uint256 maxNumber) public onlyOwner {
+    function roll(uint256 minNumber, uint256 maxNumber) public onlyOwner {
         require(
             canCallRandom,
             "You need to prepare the random before calling it."
         );
         canCallRandom = false;
-        winnerNumbers.push(random(maxNumber));
+        winnerNumbers.push(random(minNumber, maxNumber));
         rollCount++;
     }
 
